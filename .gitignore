@@ -1,6 +1,6 @@
 **/xcuserdata/
 **/Moonlight.xcscmblueprint
-**/xcschemes/*.xcscheme
+**/xcuserdata/**/xcschemes/*.xcscheme
 .DS_Store
 Build
 build/
@@ -12,5 +12,3 @@ SourcePackages/
 .build-cache/
 build-home/
 *.xccheckout
-.github
-README.md
