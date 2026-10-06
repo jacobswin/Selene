@@ -25,17 +25,21 @@ jobs:
         shell: bash
         run: |
           selected_xcode=""
-          selected_major=0
+          selected_version=0
           for candidate in /Applications/Xcode*.app; do
             candidate_dir="$candidate/Contents/Developer"
-            candidate_major=$(DEVELOPER_DIR="$candidate_dir" xcodebuild -version | awk '/^Xcode / {split($2, v, "."); print v[1]}')
-            if [[ "$candidate_major" =~ ^[0-9]+$ ]] && (( candidate_major >= 26 && candidate_major > selected_major )); then
+            candidate_version=$(DEVELOPER_DIR="$candidate_dir" xcodebuild -version | awk '/^Xcode / {split($2, v, "."); print v[1]*1000000+v[2]*1000+v[3]}')
+            if [[ "$candidate_version" =~ ^[0-9]+$ ]] && (( candidate_version >= 26000000 && candidate_version > selected_version )); then
               selected_xcode="$candidate_dir"
-              selected_major="$candidate_major"
+              selected_version="$candidate_version"
             fi
           done
           [[ -n "$selected_xcode" ]] || { echo "Xcode 26+ is required" >&2; exit 1; }
           echo "DEVELOPER_DIR=$selected_xcode" >> "$GITHUB_ENV"
+      - name: Install tvOS platform support
+        run: |
+          sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -runFirstLaunch
+          xcodebuild -downloadPlatform tvOS
       - name: Show selected Xcode and SDKs
         run: |
           xcodebuild -version
