@@ -41,3 +41,13 @@ Private host addresses, pairing screenshots, signing details and local device lo
 Measure real 4K60 streams at 160 and 200 Mbps, with receive bitrate, loss, latency and decode time; run HDR10 for 30 minutes and exercise SDR retry. Test host refusal, decoder initialization failure, unsupported display output and network interruption. Verify offline/WOL behavior, deleting the focused host/app, custom-resolution remote input, stream-return focus, controller input and actual stereo/5.1/7.1 output.
 
 800 Mbps is a configuration ceiling, not a stable-throughput promise. HDR10 is not Dolby Vision, and Opus-to-PCM surround audio is not Dolby Atmos.
+
+## GitHub publication and clean checkout
+
+Public repository: [jacobswin/Selene](https://github.com/jacobswin/Selene), default branch `main`. Original Git history and recursive submodule pins are retained.
+
+A fresh recursive clone from GitHub succeeded. In that clone, all three production-policy suites passed, README images and local document links resolved, and the documented `bash BuildScripts/build-tvos.sh Debug` command built successfully under Xcode 27 without sharing the original checkout's build or package caches.
+
+GitHub-hosted unsigned Debug and Release builds passed under Xcode 26 after tvOS platform support was provisioned: [successful CI run](https://github.com/jacobswin/Selene/actions/runs/37487413024). The earlier missing-platform failure was an environment setup issue and is retained in Actions history.
+
+The publishable tree was checked for local device identifiers, pairing evidence, signing files and credential patterns; no such material was found. This build verification does not change the physical-stream acceptance limits above.

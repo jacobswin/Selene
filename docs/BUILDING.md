@@ -14,6 +14,10 @@ Choose your own team in Signing & Capabilities. No signing certificate or person
 
 Run `bash BuildScripts/build-tvos.sh Debug` (or `Release`) for an unsigned device compile. This does not install the app.
 
+## tvOS platform components
+
+A clean GitHub runner initially exposed the tvOS SDK but rejected the generic tvOS destination because platform support was missing. The workflow now initializes Xcode and runs `xcodebuild -downloadPlatform tvOS` before building. On a local machine with the same error, install tvOS in Xcode Settings → Components, or use that command. See [Apple’s component-installation documentation](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components).
+
 ## Physical Apple TV
 
 Keep Mac and Apple TV on the same local network. On Apple TV, open **Settings → Remotes and Devices → Remote App and Devices**. Open **Window → Devices and Simulators** in Xcode, select Apple TV and follow pairing prompts. Keep devices nearby when proximity is requested. Select the paired device as the run destination and run Selene.
