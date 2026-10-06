@@ -16,7 +16,7 @@ Run `bash BuildScripts/build-tvos.sh Debug` (or `Release`) for an unsigned devic
 
 ## tvOS platform components
 
-A clean GitHub runner initially exposed the tvOS SDK but rejected the generic tvOS destination because platform support was missing. The workflow now initializes Xcode and runs `xcodebuild -downloadPlatform tvOS` before building. On a local machine with the same error, install tvOS in Xcode Settings → Components, or use that command. See [Apple’s component-installation documentation](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components).
+A clean GitHub runner initially exposed the tvOS SDK but rejected the generic tvOS destination because platform support was missing. The workflow now initializes Xcode, checks for an eligible generic tvOS device destination, and downloads platform support only when needed. Downloads are retried if the runner encounters a transient simulator connection failure. On a local machine with the same error, install tvOS in Xcode Settings → Components, or use that command. See [Apple’s component-installation documentation](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components).
 
 ## Physical Apple TV
 

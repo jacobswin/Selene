@@ -39,7 +39,23 @@ jobs:
       - name: Install tvOS platform support
         run: |
           sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -runFirstLaunch
-          xcodebuild -downloadPlatform tvOS
+          mkdir -p build
+          xcodebuild -showdestinations -project Selene.xcodeproj -scheme Selene > build/tvos-destinations.txt 2>&1
+          if grep 'platform:tvOS,.*name:Any tvOS Device' build/tvos-destinations.txt | grep -qv 'error:'; then
+            echo "tvOS device destination is available"
+          else
+            # Some runner images include the SDK but need platform provisioning.
+            xcrun simctl list >/dev/null
+            for attempt in 1 2 3; do
+              if xcodebuild -downloadPlatform tvOS; then
+                break
+              fi
+              if [[ "$attempt" == 3 ]]; then
+                exit 1
+              fi
+              sleep 10
+            done
+          fi
       - name: Show selected Xcode and SDKs
         run: |
           xcodebuild -version
