@@ -1,4 +1,4 @@
-name: Build Moonlight Plus tvOS
+name: Build Selene tvOS
 
 on:
   push:
@@ -11,9 +11,7 @@ permissions:
 
 jobs:
   tvos:
-    runs-on: macos-15
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    runs-on: macos-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -23,6 +21,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Select an installed Xcode 26 or newer
+        shell: bash
+        run: |
+          selected_xcode=""
+          selected_major=0
+          for candidate in /Applications/Xcode*.app; do
+            candidate_dir="$candidate/Contents/Developer"
+            candidate_major=$(DEVELOPER_DIR="$candidate_dir" xcodebuild -version | awk '/^Xcode / {split($2, v, "."); print v[1]}')
+            if [[ "$candidate_major" =~ ^[0-9]+$ ]] && (( candidate_major >= 26 && candidate_major > selected_major )); then
+              selected_xcode="$candidate_dir"
+              selected_major="$candidate_major"
+            fi
+          done
+          [[ -n "$selected_xcode" ]] || { echo "Xcode 26+ is required" >&2; exit 1; }
+          echo "DEVELOPER_DIR=$selected_xcode" >> "$GITHUB_ENV"
       - name: Show selected Xcode and SDKs
         run: |
           xcodebuild -version

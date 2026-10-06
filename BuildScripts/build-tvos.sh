@@ -19,7 +19,7 @@ if ! xcrun --sdk appletvos --show-sdk-path >/dev/null; then
 fi
 xcode_major="$(xcodebuild -version | awk '/^Xcode / {split($2, parts, "."); print parts[1]}')"
 if [[ ! "$xcode_major" =~ ^[0-9]+$ ]] || (( xcode_major < 26 )); then
-  echo "This VoidLink baseline uses SDK 26 APIs and requires Xcode 26 or later." >&2
+  echo "This Selene baseline uses SDK 26 APIs and requires Xcode 26 or later." >&2
   exit 1
 fi
 if git submodule status --recursive | grep -qE '^[-+U]'; then
@@ -28,13 +28,13 @@ if git submodule status --recursive | grep -qE '^[-+U]'; then
 fi
 
 mkdir -p build
-plutil -lint VoidLink.xcodeproj/project.pbxproj 'VoidLink TV/Info.plist'
+plutil -lint 'Selene.xcodeproj/project.pbxproj' 'Selene TV/Info.plist'
 xcodebuild -resolvePackageDependencies \
-  -project VoidLink.xcodeproj -scheme 'Moonlight Plus TV' \
+  -project 'Selene.xcodeproj' -scheme 'Selene' \
   -clonedSourcePackagesDirPath build/SourcePackages \
   -onlyUsePackageVersionsFromResolvedFile
 xcodebuild build \
-  -project VoidLink.xcodeproj -scheme 'Moonlight Plus TV' \
+  -project 'Selene.xcodeproj' -scheme 'Selene' \
   -configuration "$configuration" -sdk appletvos \
   -destination 'generic/platform=tvOS' \
   -derivedDataPath build/DerivedData \

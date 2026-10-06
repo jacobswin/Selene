@@ -4,7 +4,7 @@
 
 | 能力 | 现有实现证据 | 首版处理 |
 | --- | --- | --- |
-| 独立 TV target | `VoidLink.xcodeproj`、`VoidLink TV/Info.plist` | 保留；修 SDK 引用、签名与版本设置 |
+| 独立 TV target | `Selene.xcodeproj`、`Selene TV/Info.plist` | 保留；修 SDK 引用、签名与版本设置 |
 | 主机发现与配对 | Network 下 MDNSManager、DiscoveryManager、PairManager | 真机确认自动发现、IP 与 PIN |
 | 本地网络声明 | TV Info.plist 已有 Bonjour 与本地网络说明 | 保留，验证首次授权及拒绝行为 |
 | TV 设置及状态恢复 | SettingsViewController 与 AppDelegate 的 TARGET_OS_TV 分支 | 优先复用，验证冷启动与重新打开设置 |

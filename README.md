@@ -1,42 +1,67 @@
-# VoidLink 已上架App Store.
-# VoidLink is available on App Store
-### [https://apps.apple.com/app/voidlink/id6747717070](https://apps.apple.com/cn/app/voidlink/id6747717070)
+# Selene
 
-<br>
+[English](README.md) | [简体中文](README_CN.md)
 
-# 代码 Coding
-- 代码提交在`Integration`分支。
-- For latest coding commits, go to branch `Integration`.
+<p align="center"><img src="docs/branding/selene-icon-master.png" width="480" alt="Selene app icon"></p>
 
-<br>
+An open-source game streaming client for **Apple TV**, built on the Moonlight ecosystem. Stream your PC games and desktop through Sunshine, with a tvOS interface designed for the Siri Remote and native controller navigation.
 
-# 关于VoidLink. About VoidLink
-- 本项目最初基于开源项目 [moonlight-iOS] fork 而来。在此基础上，True砖家（True Zhuanjia）@ Bilibili 及其他社区开发者对项目进行了大量重构、重新设计与功能扩展，包括全新的用户界面和显著增强的功能特性。<br>我们对 moonlight-iOS 开发者的开创性工作表示衷心感谢。 <br><br>
-- VoidLink was originally forked from the open-source project [moonlight-iOS], but has since been extensively reworked, redesigned, and expanded by True砖家 (True Zhuanjia) @ Bilibili and other community developers. These contributions include a completely new user interface and significant enhancements to the application's functionality.<br>We gratefully acknowledge the foundational work of the moonlight-iOS developers.
+**In development.** There is no public binary or TestFlight release yet. Build and sign the app using Xcode. See the [verification record](docs/SELENE_VERIFICATION.md) for actual test results.
 
-<br>
+![Selene settings](docs/verification/selene-settings.png)
 
-# App Store 分发一次性收费声明. 
-# Statement on One-Time App Store Distribution Fee. 
-- VoidLink 的 App Store 安装费用用于覆盖通过 Apple 框架进行安全可靠应用分发的成本。同时也支持项目维护者进行持续的开发、维护，以及公众用户访问并下载官方签名版本。感谢您对项目的支持，帮助我们持续改进和优化。<br><br>
-- The App Store fee for VoidLink covers the cost of secure and trusted distribution using Apple's infrastructure. It supports ongoing development, maintenance, and access to the official signed build. Thank you for supporting the project and helping sustain ongoing improvements.  
+## Features
 
- <br>
+- Native tvOS focus, a single host-to-app entry, and focus restoration after settings or streaming.
+- Modern two-column settings; focusing a category immediately shows its contents.
+- Resolution choices include 720p, 1080p, 2K (2560×1440), 3K (3200×1800), 4K, and custom even dimensions within device limits.
+- English, Simplified Chinese, and Traditional Chinese, with an in-app language selector. Other system languages fall back to English.
+- Configurable bitrate up to **800 Mbps**, including custom values above 150 Mbps. This is a configuration limit, **not guaranteed network throughput**.
+- Remote-operated bitrate keypad; −/+ use 10 Mbps steps at or below 200 Mbps and 25 Mbps above 200 Mbps.
+- H.264 and HEVC; HDR10 through HEVC Main10 when the host, decoder, and display support it.
+- AV1 is always listed, but selectable only when hardware decoding is available. No software AV1 decoding.
+- Stereo, 5.1, and 7.1 audio, subject to host and output-device capability.
 
-# 开发者B站号. Developer on Bilibili
+The current stream path does **not support Dolby Vision or Dolby Atmos**. HDR10 is not Dolby Vision; Opus decoded to multichannel PCM is not Atmos. 2.1, 5.1.2, and 7.1.4 are not implemented as selectable output layouts. High-bitrate 4K60, sustained HDR playback, and physical audio output still require device validation.
 
-如果你在用Bilibili， 请关注`True砖家`，了解该fork的最新消息。 <br>
-If you are on Bilibili, subscribe `True砖家` to get the latest news of this fork: <br>
-https://b23.tv/A0F9v7n
+## Build and install
 
-<br>
+Requirements: macOS, **Xcode 26 or later**, and **tvOS 16 or later**. Current development uses Xcode 27.
 
-# 贡献者 Contributors
-[@TrueZhuangJia](https://github.com/TrueZhuangJia) <br>
-[@All contributors from moonlight-iOS](https://github.com/moonlight-stream/moonlight-ios/graphs/contributors) <br>
-[@stefanilijev97](https://github.com/stefanilijev97/stefanilijev97) <br>
-[@Acaki](https://github.com/Acaki) <br>
-[@seastwood](https://github.com/seastwood) <br>
-[@Danos0100](https://github.com/Danos0100) <br>
-[@xzzpig](https://github.com/xzzpig) <br>
-[@King0fSpace](https://github.com/King0fSpace) <br>
+```sh
+git clone --recurse-submodules https://github.com/jacobswin/Selene.git
+cd Selene
+open Selene.xcodeproj
+```
+
+1. Select the **Selene** scheme and the main Selene tvOS target.
+2. In **Signing & Capabilities**, enable automatic signing and select your own development team. Choose your own unique bundle identifier if required.
+3. Pair the Apple TV in Xcode's **Devices and Simulators**, select it as the run destination, and run. A 4K simulator supports UI checks, but cannot establish physical decoder or HDR capability.
+
+Unsigned compile check:
+
+```sh
+bash BuildScripts/build-tvos.sh Debug
+```
+
+See [building and pairing](docs/BUILDING.md). When upgrading an existing development installation, keep its bundle identifier to retain pairing and settings.
+
+## Connect and play
+
+Run Sunshine on the PC. Development currently uses [Foundation Sunshine](https://github.com/AlkaidLab/foundation-sunshine); compatibility with every Sunshine version has not been established.
+
+Select a discovered computer or use **+** to enter its address. Select the computer to pair, then enter the PIN shown by Selene in Sunshine's pairing page. Selecting a paired computer opens its applications; **Desktop** remains an ordinary app in that list.
+
+Use the Siri Remote to navigate and select, and Back/Menu to return. A connected controller uses native tvOS focus in the interface and supplies game input during streaming. Open settings through the gear button.
+
+## Origins and acknowledgements
+
+The direct Apple-client code base is [VoidLink](https://github.com/The-Fried-Fish/VoidLink-previously-moonlight-zwm), itself derived from [Moonlight iOS/tvOS](https://github.com/moonlight-stream/moonlight-ios). Original copyright notices and the [upstream README](docs/UPSTREAM_README.md) are retained.
+
+Other references include [Moonlight Android](https://github.com/moonlight-stream/moonlight-android), [Moonlight Qt](https://github.com/moonlight-stream/moonlight-qt), [Moonlight Embedded](https://github.com/moonlight-stream/moonlight-embedded), historical [Moonlight Chrome](https://github.com/moonlight-stream/moonlight-chrome), [Moonlight Common C](https://github.com/moonlight-stream/moonlight-common-c), and [Moonlight V+](https://github.com/qiin2333/moonlight-vplus). The pinned protocol submodule uses the upstream [VoidLink C fork](https://github.com/TrueZhuangJia/voidlink-c).
+
+Selene is an independent community project. References do not imply official affiliation or endorsement.
+
+## License and contributions
+
+Distributed under [GPLv3](LICENSE.txt). Dependencies retain their own licenses. Contributions and reproducible bug reports are welcome; include device model, tvOS and host versions, stream settings, and reproduction steps. Remove private addresses and pairing codes from shared evidence.

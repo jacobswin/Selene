@@ -12,3 +12,15 @@ SourcePackages/
 .build-cache/
 build-home/
 *.xccheckout
+
+# Local signing and private device evidence
+*.mobileprovision
+*.p12
+*.p8
+*.cer
+Signing.local.xcconfig
+docs/verification/device-first-launch.png
+docs/verification/private/
+docs/verification/tvos-first-launch.png
+docs/verification/tvos-4k-settings.png
+docs/verification/settings-language-hant.png
