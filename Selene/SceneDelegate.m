@@ -17,7 +17,7 @@
 NSNotificationName const SeleneTvOSRemoteMenuTappedNotification = @"SeleneTvOSRemoteMenuTappedNotification";
 NSNotificationName const SeleneTvOSRemotePlayPauseTappedNotification = @"SeleneTvOSRemotePlayPauseTappedNotification";
 
-@interface SeleneControllerRootViewController : GCEventViewController
+@interface SeleneControllerRootViewController : GCEventViewController <UIGestureRecognizerDelegate>
 
 - (instancetype)initWithContentViewController:(UIViewController *)contentViewController;
 
@@ -47,6 +47,14 @@ NSNotificationName const SeleneTvOSRemotePlayPauseTappedNotification = @"SeleneT
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.controllerUserInteractionEnabled = TARGET_OS_TV ? YES : NO;
+#if TARGET_OS_TV
+    // The focus environment can remain in the navigation container during a
+    // non-focusable stream. Capture Menu above that container before its pop.
+    UITapGestureRecognizer *streamMenu = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openStreamMenu:)];
+    streamMenu.allowedPressTypes = @[@(UIPressTypeMenu)];
+    streamMenu.delegate = self;
+    [self.view addGestureRecognizer:streamMenu];
+#endif
     if (!_contentViewController || _contentViewController.parentViewController == self) {
         return;
     }
@@ -65,6 +73,17 @@ NSNotificationName const SeleneTvOSRemotePlayPauseTappedNotification = @"SeleneT
 }
 
 #if TARGET_OS_TV
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceivePress:(UIPress *)press {
+    StreamFrameViewController *stream = [StreamFrameViewController sharedInstance];
+    return press.type == UIPressTypeMenu && stream.viewIfLoaded.window == self.view.window &&
+        stream.mainFrameViewcontroller.isStreaming && !stream.presentedViewController &&
+        !stream.mainFrameViewcontroller.settingsExpandedInStreamView;
+}
+- (void)openStreamMenu:(UITapGestureRecognizer *)recognizer {
+    if (recognizer.state == UIGestureRecognizerStateEnded) {
+        [[StreamFrameViewController sharedInstance] showTVStreamMenu];
+    }
+}
 // Menu screens use UIKit focus for Siri Remote navigation. Streaming keeps
 // its own GCEventViewController and raw game-controller input handling.
 - (NSArray<id<UIFocusEnvironment>> *)preferredFocusEnvironments {

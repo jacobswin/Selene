@@ -113,3 +113,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Found capability report white-on-white focused labels and untranslated Display mode/Supported/Unavailable states; fixed focused contrast and English/Simplified Chinese/Traditional Chinese strings. Localization tests passed; final visual acceptance remains pending.
 - User reported no stream return menu on Apple TV. Simulator reproduced the missing menu and a separate video decompression error (-8969). Replaced the gesture-only Menu route with explicit responder handling, enabled UIKit remote delivery and retained the shared input suspension. Debug simulator and signed Apple TV builds passed; updated installation prepared.
 - Final Menu acceptance was interrupted by the Mac locking. Return-menu open/close/settings round trip, physical gamepad delivery and continued physical video/audio remain unverified. No private screenshots or logs were added to the repository.
+
+### 2026-10-08: physical-device Menu routing follow-up
+
+- User confirmed physical streaming video works but Menu still popped out of streaming; simulator streaming is excluded from this acceptance run at the user's request.
+- Added a root-container Menu recognizer ahead of the navigation controller. It handles only a visible active stream, and yields to an existing modal or expanded settings. Stream input cleanup continues through the shared menu path.
+- Signed Apple TV Debug build passed; installed and relaunched on the paired device. Physical open/close and settings-return acceptance is awaiting the user's result; no acceptance checkbox was marked complete.
