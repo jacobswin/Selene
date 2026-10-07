@@ -41,6 +41,38 @@ int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers) {
 }
 
 
+// Only explicit stream-menu actions may bypass the ordinary input suspension.
++ (void)performShortcut:(NSArray<NSNumber *> *)keys completion:(void (^)(void))completion {
+    SeleneInitKeyState(); [seleneKeyLock lock];
+    [self releaseAllKeys];
+    __block char modifiers = 0;
+    for (NSNumber *key in keys) {
+        if (key.intValue == 0xA4) modifiers |= MODIFIER_ALT;
+        if (key.intValue == 0x5B) modifiers |= MODIFIER_META;
+        if (key.intValue == 0xA2) modifiers |= MODIFIER_CTRL;
+        if (key.intValue == 0xA0) modifiers |= MODIFIER_SHIFT;
+        short code = (short)(0x8000 | key.intValue);
+        [selenePressedKeys addObject:@((unsigned short)code)];
+        LiSendKeyboardEvent(code, KEY_ACTION_DOWN, modifiers);
+    }
+    [seleneKeyLock unlock];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 50 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        [seleneKeyLock lock];
+        for (NSNumber *key in keys.reverseObjectEnumerator) {
+            short code = (short)(0x8000 | key.intValue);
+            if (key.intValue == 0xA4) modifiers &= ~MODIFIER_ALT;
+            if (key.intValue == 0x5B) modifiers &= ~MODIFIER_META;
+            if (key.intValue == 0xA2) modifiers &= ~MODIFIER_CTRL;
+            if (key.intValue == 0xA0) modifiers &= ~MODIFIER_SHIFT;
+            NSNumber *number = @((unsigned short)code);
+            if ([selenePressedKeys containsObject:number]) LiSendKeyboardEvent(code, KEY_ACTION_UP, modifiers);
+            [selenePressedKeys removeObject:number];
+        }
+        [seleneKeyLock unlock];
+        if (completion) completion();
+    });
+}
+
 + (BOOL)sendKeyEventForPress:(UIPress*)press down:(BOOL)down API_AVAILABLE(ios(13.4)) {
     if (press.key != nil) {
         return [KeyboardSupport sendKeyEvent:press.key down:down];

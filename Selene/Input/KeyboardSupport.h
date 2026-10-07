@@ -14,6 +14,7 @@ int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers);
 + (BOOL)forwardingSuspended;
 + (void)setForwardingSuspended:(BOOL)suspended;
 + (void)releaseAllKeys;
++ (void)performShortcut:(NSArray<NSNumber *> *)keys completion:(void (^)(void))completion;
 
 struct KeyEvent {
     u_short keycode;

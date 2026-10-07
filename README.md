@@ -32,7 +32,7 @@ Checked items are implemented; physical streaming validation is tracked separate
 - [x] Back/Menu opens a stream dialog instead of immediately leaving; offer Continue, Stream settings, Disconnect, and Disconnect and close app (with confirmation).
 - [ ] Validate the new dialog on Apple TV: repeated Back, settings round trips, controller/keyboard input, both exit actions, and restored app focus.
 - [x] Bring live bitrate and performance statistics directly into the stream menu, with host rejection feedback and safe focus navigation.
-- [ ] Add menu shortcuts for Alt+Tab, Windows, special keys, and explicit tvOS text input; release all pressed keys when dismissed or disconnected.
+- [x] Add menu shortcuts for Alt+Tab, Windows, special keys, and explicit tvOS text input; release all pressed keys when dismissed or disconnected.
 - [ ] Investigate in-session resolution and HDR changes with Foundation Sunshine; expose only negotiated support, otherwise clearly require reconnecting.
 - [ ] Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
 - [ ] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.

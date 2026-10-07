@@ -67,3 +67,8 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Unified settings/menu requests with a serial coordinator; 5-second host timeout, acknowledged-target rollback, persisted manual targets and stream-generation isolation. Menu input suspension sends keyboard releases and neutral controller/mouse states; full settings returns to the menu.
 - Unsigned tvOS Debug build passed. Production coordinator tests passed for overlapping requests, rejected mutations, persistent manual targets, stale responses and transient automatic targets. Existing bitrate/audio policy checks passed.
 - Removed exactly the 14 specified local reference attachments; no reference photos are tracked. Live Apple TV overlay/input/exit acceptance remains pending.
+
+### Stage 2: explicit keyboard actions
+
+- Added Alt+Tab, Windows, Esc, Enter, special keys and an explicit native text editor. Text cancel does not send Enter. Shortcuts use balanced key-down/up sequences and reverse modifier release; session teardown releases pending keys and stale completion cannot resume a new session.
+- tvOS Debug build passed. Production key-sender tests passed for Alt+Tab order, ordinary-input suspension, explicit bypass, and cancellation cleanup. Physical PC text entry and shortcut effects remain pending.

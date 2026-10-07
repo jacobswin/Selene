@@ -8,7 +8,7 @@ import Foundation
     private(set) weak var stream: StreamFrameViewController?
     private(set) var targetKbps = 0
     private(set) var pending = false
-    private var generation = UUID()
+    fileprivate var generation = UUID()
     private let requests = DispatchQueue(label: "Selene.stream.bitrate")
     var returningFromSettings = false
     var nextFocus = "continue"
@@ -153,6 +153,7 @@ final class TVStreamMenuController: UIViewController {
             guard let self else { return }; self.session.returningFromSettings = true
             self.dismiss(animated: true) { self.session.stream?.tvPresentSettings() }
         }
+        add("keys", "Keyboard shortcuts") { [weak self] in self?.chooseKeys() }
         add("disconnect", "Disconnect stream") { [weak self] in self?.disconnect(closeApp: false) }
         add("quit", "Disconnect and close app") { [weak self] in self?.confirmQuit() }
         right.addArrangedSubview(tvStreamLabel("Bitrate".localized, size: 28))
@@ -189,12 +190,56 @@ final class TVStreamMenuController: UIViewController {
     }
     func apply(_ kbps: Int) { session.requestManual(kbps) { [weak self] _, _, _ in self?.refresh() } }
     private func step(_ direction: Int) { apply(session.targetKbps + direction * (session.targetKbps <= 200_000 ? 10_000 : 25_000)) }
+    private func closeMenu(_ completion: @escaping () -> Void) {
+        if let child = presentedViewController {
+            child.dismiss(animated: false) { self.closeMenu(completion) }
+        } else { dismiss(animated: true, completion: completion) }
+    }
     func resume() {
         session.nextFocus = "continue"
-        dismiss(animated: true) { self.session.stream?.tvSetInputPaused(false) }
+        closeMenu { self.session.stream?.tvSetInputPaused(false) }
     }
     private func disconnect(closeApp: Bool) {
-        dismiss(animated: true) { self.session.stream?.tvDisconnectCloseApp(closeApp) }
+        closeMenu { self.session.stream?.tvDisconnectCloseApp(closeApp) }
+    }
+    private func sendShortcut(_ keys: [Int]) {
+        closeMenu { [weak session] in
+            guard let session, session.stream != nil else { return }
+            let token = session.generation
+            KeyboardSupport.performShortcut(keys.map { NSNumber(value: $0) }) { [weak session] in
+                guard let session, session.generation == token else { return }
+                session.stream?.tvSetInputPaused(false)
+            }
+        }
+    }
+    private func chooseKeys() {
+        session.nextFocus = "keys"
+        let alert = UIAlertController(title: "Keyboard shortcuts".localized, message: nil, preferredStyle: .alert)
+        for (title, keys) in [("Alt+Tab", [0xA4,0x09]), ("Windows", [0x5B]), ("Esc", [0x1B]), ("Enter", [0x0D])] {
+            alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in self?.sendShortcut(keys) })
+        }
+        alert.addAction(UIAlertAction(title: "Text input".localized, style: .default) { [weak self] _ in
+            guard let self else { return }
+            self.dismiss(animated: false) {
+                let input = TVStreamTextInputController { [weak self] text in
+                    guard let self, self.session.stream != nil else { return }
+                    text.withCString { _ = LiSendUtf8TextEvent($0, UInt32(text.utf8.count)) }
+                    self.resume()
+                }
+                self.present(input, animated: true)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Special keys".localized, style: .default) { [weak self] _ in
+            guard let self else { return }; self.dismiss(animated: false) { self.chooseSpecialKeys() }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel)); present(alert, animated: true)
+    }
+    private func chooseSpecialKeys() {
+        let alert = UIAlertController(title: "Special keys".localized, message: nil, preferredStyle: .alert)
+        for (name, keys) in [("Ctrl+Alt+Delete",[0xA2,0xA4,0x2E]),("Win+L",[0x5B,0x4C]),("Tab",[0x09]),("Backspace",[0x08]),("F1",[0x70]),("F5",[0x74]),("F11",[0x7A]),("F12",[0x7B])] {
+            alert.addAction(UIAlertAction(title: name, style: .default) { [weak self] _ in self?.sendShortcut(keys) })
+        }
+        alert.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel)); present(alert, animated: true)
     }
     private func confirmQuit() {
         session.nextFocus = "quit"
@@ -218,6 +263,37 @@ final class TVStreamMenuController: UIViewController {
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if presses.contains(where: { $0.type == .menu }) { resume(); return }
         super.pressesEnded(presses, with: event)
+    }
+}
+final class TVStreamTextInputController: UIViewController {
+    private let input = UITextField()
+    private let send: (String) -> Void
+    init(send: @escaping (String) -> Void) {
+        self.send = send; super.init(nibName: nil, bundle: nil); modalPresentationStyle = .fullScreen
+    }
+    required init?(coder: NSCoder) { fatalError() }
+    override func viewDidLoad() {
+        super.viewDidLoad(); view.backgroundColor = UIColor(white: 0.04, alpha: 1)
+        input.placeholder = "Text input".localized; input.font = .systemFont(ofSize: 36)
+        input.textColor = .white; input.backgroundColor = UIColor(white: 0.15, alpha: 1)
+        input.heightAnchor.constraint(equalToConstant: 85).isActive = true
+        input.autocorrectionType = .no; input.autocapitalizationType = .none
+        let confirm = TVStreamButton("Send text".localized) { [weak self] in
+            guard let self, let text = self.input.text, !text.isEmpty else { return }
+            self.dismiss(animated: true) { self.send(text) }
+        }
+        let cancel = TVStreamButton("Cancel".localized) { [weak self] in self?.dismiss(animated: true) }
+        let stack = UIStackView(arrangedSubviews: [tvStreamLabel("Text input".localized, size: 38), input, confirm, cancel])
+        stack.axis = .vertical; stack.spacing = 30; stack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stack)
+        NSLayoutConstraint.activate([stack.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.55), stack.centerXAnchor.constraint(equalTo: view.centerXAnchor), stack.centerYAnchor.constraint(equalTo: view.centerYAnchor)])
+    }
+    override var preferredFocusEnvironments: [UIFocusEnvironment] { [input] }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { return }; super.pressesBegan(presses, with: event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { dismiss(animated: true); return }; super.pressesEnded(presses, with: event)
     }
 }
 #endif
