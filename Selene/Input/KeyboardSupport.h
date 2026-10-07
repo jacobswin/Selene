@@ -8,7 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers);
+
 @interface KeyboardSupport : NSObject
++ (BOOL)forwardingSuspended;
++ (void)setForwardingSuspended:(BOOL)suspended;
++ (void)releaseAllKeys;
 
 struct KeyEvent {
     u_short keycode;

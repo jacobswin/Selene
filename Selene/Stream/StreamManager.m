@@ -163,6 +163,8 @@
     return TRUE;
 }
 
+- (double)receivedMbps { return [_connection getBwTracker].averageMbps; }
+
 - (NSString*) getStatsOverlayText: (uint16_t) overlayLevel {
     NSString *text = [self getStatsOverlayTextInternal:overlayLevel];
 #if TARGET_OS_TV

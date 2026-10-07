@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71000000000000000000002 /* TVStreamExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71000000000000000000001; };
+		A71000000000000000000003 /* TVStreamExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71000000000000000000001; };
 		180E6E372E93BFDB0067C73A /* AlertControllerUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180E6E362E93BFDB0067C73A /* AlertControllerUtil.swift */; };
 		1817B61E2E6FD04D000D938D /* SafeTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1817B61D2E6FD04D000D938D /* SafeTimer.swift */; };
 		1829CE3F2E2154DF0074A99A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1829CE3E2E2154DF0074A99A /* SceneDelegate.m */; };
@@ -329,6 +331,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A71000000000000000000001 /* TVStreamExperience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVStreamExperience.swift; sourceTree = "<group>"; };
 		180345E02E819877004AF36F /* libopus-sim.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libopus-sim.a"; sourceTree = "<group>"; };
 		180E6E362E93BFDB0067C73A /* AlertControllerUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertControllerUtil.swift; sourceTree = "<group>"; };
 		1817B61D2E6FD04D000D938D /* SafeTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeTimer.swift; sourceTree = "<group>"; };
@@ -1061,6 +1064,7 @@
 				FB89462619F646E200339C8A /* StreamFrameViewController.h */,
 				FB89462719F646E200339C8A /* StreamFrameViewController.m */,
 				A5E771012FFF100100000001 /* SettingsSwiftUI.swift */,
+				A71000000000000000000001 /* TVStreamExperience.swift */,
 				A5E771032FFF100100000003 /* SettingsControls.swift */,
 				FBD3494E19FF2174002D2A60 /* SettingsViewController.h */,
 				FBD3494F19FF2174002D2A60 /* SettingsViewController.m */,
@@ -1377,6 +1381,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A70100000000000000000001 /* SettingsSwiftUI.swift in Sources */,
+				A71000000000000000000002 /* TVStreamExperience.swift in Sources */,
 				A70100000000000000000002 /* SettingsControls.swift in Sources */,
 				A70100000000000000000003 /* authored_haptics_engine.cpp in Sources */,
 				A70100000000000000000004 /* Limelight.xcdatamodeld in Sources */,
@@ -1494,6 +1499,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A5E771022FFF100100000002 /* SettingsSwiftUI.swift in Sources */,
+				A71000000000000000000003 /* TVStreamExperience.swift in Sources */,
 				A5E771042FFF100100000004 /* SettingsControls.swift in Sources */,
 				A1D500022FFC000100000001 /* authored_haptics_engine.cpp in Sources */,
 				FB290D0719B2C406004C83CF /* Limelight.xcdatamodeld in Sources */,

@@ -15,6 +15,7 @@
 #import "Selene-Swift.h"
 
 #import "DataManager.h"
+#import "KeyboardSupport.h"
 #include "Limelight.h"
 
 @import GameController;
@@ -34,6 +35,7 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
 
 
 @implementation ControllerSupport {
+    BOOL _forwardingSuspended;
     id _controllerConnectObserver;
     id _controllerDisconnectObserver;
     id _mouseConnectObserver;
@@ -858,6 +860,7 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
 
 -(void) updateFinished:(SeleneController*)controller
 {
+    if (self.forwardingSuspended) return;
     BOOL exitRequested = NO;
     
     [_controllerStreamLock lock];
@@ -1581,6 +1584,7 @@ double rc_expo(double x, double expo) {
 -(void) registerMouseCallbacks:(GCMouse*) mouse API_AVAILABLE(ios(14.0)) {
     if (_captureMouse){
         mouse.mouseInput.mouseMovedHandler = ^(GCMouseInput * _Nonnull mouse, float deltaX, float deltaY) {
+        if (self.forwardingSuspended) return;
             self->accumulatedDeltaX += deltaX / MOUSE_SPEED_DIVISOR;
             self->accumulatedDeltaY += -deltaY / MOUSE_SPEED_DIVISOR;
             
@@ -1600,23 +1604,28 @@ double rc_expo(double x, double expo) {
 
     
     mouse.mouseInput.leftButton.pressedChangedHandler = ^(GCControllerButtonInput * _Nonnull button, float value, BOOL pressed) {
+        if (self.forwardingSuspended) return;
         LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_LEFT);
     };
     mouse.mouseInput.middleButton.pressedChangedHandler = ^(GCControllerButtonInput * _Nonnull button, float value, BOOL pressed) {
+        if (self.forwardingSuspended) return;
         LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_MIDDLE);
     };
     mouse.mouseInput.rightButton.pressedChangedHandler = ^(GCControllerButtonInput * _Nonnull button, float value, BOOL pressed) {
+        if (self.forwardingSuspended) return;
         LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_RIGHT);
     };
     
     if (mouse.mouseInput.auxiliaryButtons != nil) {
         if (mouse.mouseInput.auxiliaryButtons.count >= 1) {
             mouse.mouseInput.auxiliaryButtons[0].pressedChangedHandler = ^(GCControllerButtonInput * _Nonnull button, float value, BOOL pressed) {
+        if (self.forwardingSuspended) return;
                 LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_X1);
             };
         }
         if (mouse.mouseInput.auxiliaryButtons.count >= 2) {
             mouse.mouseInput.auxiliaryButtons[1].pressedChangedHandler = ^(GCControllerButtonInput * _Nonnull button, float value, BOOL pressed) {
+        if (self.forwardingSuspended) return;
                 LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_X2);
             };
         }
@@ -1628,6 +1637,7 @@ double rc_expo(double x, double expo) {
     // GCMouse for mice, so we will have to just use it and hope for the best.
 #if TARGET_OS_TV
     mouse.mouseInput.scroll.xAxis.valueChangedHandler = ^(GCControllerAxisInput * _Nonnull axis, float value) {
+        if (self.forwardingSuspended) return;
         self->accumulatedScrollX += value;
         
         short truncatedScrollX = (short)self->accumulatedScrollX;
@@ -1640,6 +1650,7 @@ double rc_expo(double x, double expo) {
         }
     };
     mouse.mouseInput.scroll.yAxis.valueChangedHandler = ^(GCControllerAxisInput * _Nonnull axis, float value) {
+        if (self.forwardingSuspended) return;
         self->accumulatedScrollY += value;
         
         short truncatedScrollY = (short)self->accumulatedScrollY;
@@ -2325,6 +2336,22 @@ double rc_expo(double x, double expo) {
     if (VLSharedControllerSupport == self) {
         VLSharedControllerSupport = nil;
     }
+}
+
+- (BOOL)forwardingSuspended { @synchronized(self) { return _forwardingSuspended; } }
+- (void)setForwardingSuspended:(BOOL)suspended {
+    @synchronized(self) { _forwardingSuspended = suspended; }
+    [_controllerStreamLock lock];
+    for (SeleneController *controller in _voidControllers.allValues) {
+        controller.lastButtonFlags = 0;
+        controller.lastLeftTrigger = controller.lastRightTrigger = 0;
+        controller.lastLeftStickX = controller.lastLeftStickY = 0;
+        controller.lastRightStickX = controller.lastRightStickY = 0;
+        LiSendMultiControllerEvent(_multiController ? controller.playerIndex : 0, [self getActiveGamepadMask], 0, 0, 0, 0, 0, 0, 0);
+    }
+    for (int button = BUTTON_LEFT; button <= BUTTON_X2; button++) LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, button);
+    accumulatedDeltaX = accumulatedDeltaY = 0;
+    [_controllerStreamLock unlock];
 }
 
 @end

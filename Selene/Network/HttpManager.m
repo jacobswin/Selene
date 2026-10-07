@@ -304,8 +304,7 @@
     
     NSString* urlString = [NSString stringWithFormat:@"%@/bitrate?clientname=%@&bitrate=%@&uniqueid=%@", _baseHTTPSURL, clientName, [NSString stringWithFormat:@"%ld", (long)bitrateKbps], _uniqueId];
 
-    NSLog(@"bitrate urlString print: %@", urlString);
-    return [self createRequestFromString:urlString timeout:LONG_TIMEOUT_SEC];
+    return [self createRequestFromString:urlString timeout:5];
 }
 
 

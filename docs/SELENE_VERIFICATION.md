@@ -60,3 +60,10 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - On the 3840×2160 simulator, remote navigation opened Audio Configuration and showed exactly Stereo / 5.1-channel / 7.1-channel plus Cancel. Existing 5.1 preference remained selected. This is UI evidence, not physical surround-output validation.
 - Actual live-stream menu dismissal, settings return, both exit actions, host rejection, keyboard/controller interaction and application focus restoration remain unverified on the Apple TV. Track them separately from implemented code.
 - Reviewed the user-provided Android stream-menu photo and all 14 settings photos. Matching English/Chinese README checklists and the Android feasibility review record client tasks, host/platform investigations and excluded touch/Android-only features. Personal reference photos are not published.
+
+### Stage 1: native stream overlay and shared bitrate requests
+
+- Implemented the dark two-column stream overlay, reused exact bitrate keypad, live received-bandwidth readout, Off/Compact/Detailed statistics and existing exit actions.
+- Unified settings/menu requests with a serial coordinator; 5-second host timeout, acknowledged-target rollback, persisted manual targets and stream-generation isolation. Menu input suspension sends keyboard releases and neutral controller/mouse states; full settings returns to the menu.
+- Unsigned tvOS Debug build passed. Production coordinator tests passed for overlapping requests, rejected mutations, persistent manual targets, stale responses and transient automatic targets. Existing bitrate/audio policy checks passed.
+- Removed exactly the 14 specified local reference attachments; no reference photos are tracked. Live Apple TV overlay/input/exit acceptance remains pending.

@@ -27,6 +27,7 @@
 #import "LocalizationHelper.h"
 #import "Selene-Swift.h"
 #import "NativeTouchPointer.h"
+#import "KeyboardSupport.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -596,6 +597,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     
     if (reloadSettings) {
         _settings = [[[DataManager alloc] init] getSettings];  //StreamFrameViewController retrieve the settings here.
+#if TARGET_OS_TV
+    [[SeleneTVSession shared] begin:self];
+#endif
     }
     _oscProfile = [[OSCProfilesManager sharedManager:CGRectZero] getSelectedProfile];
     
@@ -806,43 +810,35 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 
 #if TARGET_OS_TV
 - (void)showTVStreamMenu {
-    if (self.navigationController.topViewController != self || self.presentedViewController ||
-        !self.view.window) return;
-    self.controllerUserInteractionEnabled = YES;
-    UIAlertController *menu = [UIAlertController alertControllerWithTitle:[LocalizationHelper localizedStringForKey:@"Stream menu"]
-        message:nil preferredStyle:UIAlertControllerStyleAlert];
-    __weak typeof(self) weakSelf = self;
-    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Continue streaming"]
-        style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-            weakSelf.controllerUserInteractionEnabled = NO;
-        }]];
-    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Stream settings"]
-        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            weakSelf.controllerUserInteractionEnabled = NO;
-            // Present after the alert has completed its dismissal.
-            [weakSelf dismissViewControllerAnimated:YES completion:^{ [weakSelf expandSettingsView]; }];
-        }]];
-    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect stream"]
-        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            weakSelf.controllerUserInteractionEnabled = NO;
-            [weakSelf returnToMainFrame];
-        }]];
-    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect and close app"]
-        style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-            [weakSelf dismissViewControllerAnimated:YES completion:^{
-                UIAlertController *confirm = [UIAlertController alertControllerWithTitle:[LocalizationHelper localizedStringForKey:@"Close the app on your PC?"]
-                    message:[LocalizationHelper localizedStringForKey:@"Unsaved progress may be lost."] preferredStyle:UIAlertControllerStyleAlert];
-                [confirm addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Cancel"] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-                    weakSelf.controllerUserInteractionEnabled = NO;
-                }]];
-                [confirm addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect and close app"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-                    weakSelf.controllerUserInteractionEnabled = NO;
-                    [weakSelf disconnectAndQuitApp];
-                }]];
-                [weakSelf presentViewController:confirm animated:YES completion:nil];
-            }];
-        }]];
-    [self presentViewController:menu animated:YES completion:nil];
+    if (self.navigationController.topViewController != self || self.presentedViewController || !self.view.window) return;
+    [[SeleneTVSession shared] showMenuFrom:self];
+}
+- (void)tvSetInputPaused:(BOOL)paused {
+    self.controllerUserInteractionEnabled = paused;
+    _streamView.userInteractionEnabled = !paused;
+    [KeyboardSupport setForwardingSuspended:paused];
+    [_controllerSupport setForwardingSuspended:paused];
+}
+- (void)tvPresentSettings { [self expandSettingsView]; }
+- (void)tvDisconnectCloseApp:(BOOL)closeApp {
+    [self tvSetInputPaused:NO];
+    if (closeApp) [self disconnectAndQuitApp]; else [self returnToMainFrame];
+}
+- (double)tvReceivedMbps { return [_streamMan receivedMbps]; }
+- (void)tvSetStats:(NSInteger)level {
+    _settings.statsOverlayEnabled = level != 0;
+    _settings.statsOverlayLevel = @(level);
+    overlayLevel = _settings.statsOverlayLevel.intValue;
+    DataManager *data = [[DataManager alloc] init];
+    Settings *settings = [data retrieveSettings];
+    settings.statsOverlayEnabled = _settings.statsOverlayEnabled;
+    settings.statsOverlayLevel = _settings.statsOverlayLevel;
+    [data saveData];
+    [self setupOverlayView];
+    if (level && !_statsUpdateTimer) {
+        _statsUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateStatsOverlay) userInfo:nil repeats:YES];
+    }
+    [self updateStatsOverlay];
 }
 
 - (void)controllerPauseButtonPressed:(id)sender { [self showTVStreamMenu]; }
@@ -919,6 +915,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     [UIApplication sharedApplication].idleTimerDisabled = YES;
     
     _settings = [[[DataManager alloc] init] getSettings];  //StreamFrameViewController retrieve the settings here.
+#if TARGET_OS_TV
+    [[SeleneTVSession shared] begin:self];
+#endif
     
     _stageLabel = [[UILabel alloc] init];
     [_stageLabel setUserInteractionEnabled:NO];
@@ -1467,6 +1466,10 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 }
 
 - (void)returnToMainFrame {
+#if TARGET_OS_TV
+    [self tvSetInputPaused:NO];
+    [[SeleneTVSession shared] end];
+#endif
     if (@available(iOS 13.0, *)) {
         // [ControllerNavigator setUINavigationDelegate:[_mainFrameViewcontroller isInAppView] ? _mainFrameViewcontroller : _mainFrameViewcontroller.hostCollectionVC];
         [ControllerNavigator restorePreviousUINavigationDelegateWithIfCurrentDelegateIs:self];

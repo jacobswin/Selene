@@ -554,9 +554,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 #endif
     [keyInputField resignFirstResponder];
     [keyInputField removeFromSuperview];
-    LiSendKeyboardEvent(0x0d, KEY_ACTION_DOWN, 0);
+    SeleneSendKeyboardEvent(0x0d, KEY_ACTION_DOWN, 0);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(50 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
-        LiSendKeyboardEvent(0x0d, KEY_ACTION_UP, 0);
+        SeleneSendKeyboardEvent(0x0d, KEY_ACTION_UP, 0);
         if(self->tvOSRemoteTextInputLoopActive) [self restartTVOSTextInputSession];
     });
 }
@@ -572,9 +572,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 
 - (void)sendTvOSRemoteBackspace {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        LiSendKeyboardEvent(0x08, KEY_ACTION_DOWN, 0);
+        SeleneSendKeyboardEvent(0x08, KEY_ACTION_DOWN, 0);
         usleep(50 * 1000);
-        LiSendKeyboardEvent(0x08, KEY_ACTION_UP, 0);
+        SeleneSendKeyboardEvent(0x08, KEY_ACTION_UP, 0);
     });
 }
 #endif
@@ -1297,17 +1297,17 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
         if (isToggleable){
             //	(@"keycode %x", keyCode);
             if (isOn){
-                LiSendKeyboardEvent(keyCode, KEY_ACTION_DOWN, 0);
+                SeleneSendKeyboardEvent(keyCode, KEY_ACTION_DOWN, 0);
                 [keysDown addObject:@(keyCode)];
             } else {
-                LiSendKeyboardEvent(keyCode, KEY_ACTION_UP, 0);
+                SeleneSendKeyboardEvent(keyCode, KEY_ACTION_UP, 0);
                 [keysDown removeObject:@(keyCode)];
             }
         }
         else {
-            LiSendKeyboardEvent(keyCode, KEY_ACTION_DOWN, 0);
+            SeleneSendKeyboardEvent(keyCode, KEY_ACTION_DOWN, 0);
             usleep(50 * 1000);
-            LiSendKeyboardEvent(keyCode, KEY_ACTION_UP, 0);
+            SeleneSendKeyboardEvent(keyCode, KEY_ACTION_UP, 0);
         }
     }
 }
@@ -1475,6 +1475,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+#if TARGET_OS_TV
+    if ([KeyboardSupport forwardingSuspended]) { [super pressesBegan:presses withEvent:event]; return; }
+#endif
     if (@available(iOS 17.0, *)) nil;
     else {
         BOOL shouldBypassMagnifierInset = NO;
@@ -1509,6 +1512,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 }
 
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+#if TARGET_OS_TV
+    if ([KeyboardSupport forwardingSuspended]) { [super pressesEnded:presses withEvent:event]; return; }
+#endif
     if (@available(iOS 17.0, *)) nil;
     else {
         BOOL shouldRestoreMagnifierMetrics = NO;
@@ -1764,16 +1770,16 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
         return false;
     }
     
-    LiSendKeyboardEvent(0x0d, KEY_ACTION_DOWN, 0);
+    SeleneSendKeyboardEvent(0x0d, KEY_ACTION_DOWN, 0);
     usleep(50 * 1000);
-    LiSendKeyboardEvent(0x0d, KEY_ACTION_UP, 0);
+    SeleneSendKeyboardEvent(0x0d, KEY_ACTION_UP, 0);
     
     return NO;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
     for (NSNumber* keyCode in keysDown) {
-        LiSendKeyboardEvent([keyCode shortValue], KEY_ACTION_UP, 0);
+        SeleneSendKeyboardEvent([keyCode shortValue], KEY_ACTION_UP, 0);
     }
     [keysDown removeAllObjects];
 }
@@ -1799,9 +1805,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
             // delegate method above, where an actual deletion is explicit.
             return;
 #else
-            LiSendKeyboardEvent(0x08, KEY_ACTION_DOWN, 0);
+            SeleneSendKeyboardEvent(0x08, KEY_ACTION_DOWN, 0);
             usleep(50 * 1000);
-            LiSendKeyboardEvent(0x08, KEY_ACTION_UP, 0);
+            SeleneSendKeyboardEvent(0x08, KEY_ACTION_UP, 0);
 #endif
         } else {
             NSUInteger sentinelLength = KeyboardInputSentinel.length;
@@ -1851,14 +1857,14 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
         // When we want to send a modified key (like uppercase letters) we need to send the
         // modifier ("shift") seperately from the key itself.
         if (event.modifier != 0) {
-            LiSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_DOWN, event.modifier);
+            SeleneSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_DOWN, event.modifier);
         }
         // Let the host know these are not (necessarily) normalized to US English scancodes
         LiSendKeyboardEvent2(event.keycode, KEY_ACTION_DOWN, event.modifier, SS_KBE_FLAG_NON_NORMALIZED);
         usleep(50 * 1000);
         LiSendKeyboardEvent2(event.keycode, KEY_ACTION_UP, event.modifier, SS_KBE_FLAG_NON_NORMALIZED);
         if (event.modifier != 0) {
-            LiSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_UP, event.modifier);
+            SeleneSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_UP, event.modifier);
         }
     });
 }

@@ -4615,20 +4615,15 @@ final class SettingsSession: NSObject, ObservableObject {
             acknowledgedBitrate = previous
             if requested != previous {
                 bitrateRequestPending = true
-                DispatchQueue.global(qos: .userInitiated).async { [self] in
-                    let status = mainFrameController.request(forBitrate: requested)
-                    DispatchQueue.main.async { [self] in
-                        bitrateRequestPending = false
-                        if status == 200 {
-                            acknowledgedBitrate = requested
-                            mainFrameController.updateRequestedBitrate(Int32(requested))
-                        } else {
-                            itemRegistry.bitrate.value = Double(previous)
-                            itemRegistry.bitrateSliderPosition.value = Double(settingsBitrateIndex(for: Double(previous)))
-                            showTVStreamingMessage("Bitrate adjustment failed".localized, LocalizationHelper.localizedString(forKey: "Host rejected the request (status %d). Kept %.1f Mbps.", status, Double(previous) / 1000))
-                        }
-                        persistSettings()
+                SeleneTVSession.shared.requestManual(requested) { [self] success, accepted, status in
+                    bitrateRequestPending = false
+                    acknowledgedBitrate = accepted
+                    itemRegistry.bitrate.value = Double(accepted)
+                    itemRegistry.bitrateSliderPosition.value = Double(settingsBitrateIndex(for: Double(accepted)))
+                    if !success {
+                        showTVStreamingMessage("Bitrate adjustment failed".localized, LocalizationHelper.localizedString(forKey: "Host rejected the request (status %d). Kept %.1f Mbps.", status, Double(accepted) / 1000))
                     }
+                    persistSettings()
                 }
                 return
             }
@@ -8201,6 +8196,7 @@ private final class TVNativeSettingsTableController: UITableViewController {
         let mainFrame = (store.presentingController as? SettingsViewController)?.mainFrameViewController
         navigationController?.dismiss(animated: true) { [weak mainFrame] in
             mainFrame?.settingsExpandedInStreamView = false
+            SeleneTVSession.shared.settingsDidClose()
         }
     }
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -8386,7 +8382,8 @@ private final class TVBitrateButton: UIButton {
 }
 
 private final class TVExactBitrateDetail: UIViewController {
-    private let store: SettingsSession
+    private let store: SettingsSession?
+    private var onApply: ((Int) -> Void)?
     private var entry: String
     private var replacesSavedValue = true
     private let number = UILabel()
@@ -8400,6 +8397,13 @@ private final class TVExactBitrateDetail: UIViewController {
         if entry.last == "." { entry.removeLast() }
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
+    }
+    init(kbps: Int, onApply: @escaping (Int) -> Void) {
+        store = nil; self.onApply = onApply
+        entry = String(format: "%.3f", Double(kbps) / 1000)
+        while entry.last == "0" { entry.removeLast() }
+        if entry.last == "." { entry.removeLast() }
+        super.init(nibName: nil, bundle: nil); modalPresentationStyle = .fullScreen
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override var preferredFocusEnvironments: [UIFocusEnvironment] { firstKey.map { [$0] } ?? super.preferredFocusEnvironments }
@@ -8476,9 +8480,11 @@ private final class TVExactBitrateDetail: UIViewController {
         // Persist only after this editor closes so host errors appear on the underlying page.
         let store = store
         dismiss(animated: true) {
-            store.itemRegistry.bitrate.value = kbps
-            store.itemRegistry.bitrateSliderPosition.value = Double(settingsBitrateIndex(for: kbps))
-            store.persistSettings()
+            if let store {
+                store.itemRegistry.bitrate.value = kbps
+                store.itemRegistry.bitrateSliderPosition.value = Double(settingsBitrateIndex(for: kbps))
+                store.persistSettings()
+            } else { self.onApply?(Int(kbps)) }
         }
     }
 }
@@ -8561,4 +8567,12 @@ private final class TVNativeSliderDetail: UIViewController {
     }
 }
 
+#endif
+
+#if os(tvOS)
+enum TVStreamEditors {
+    static func presentBitrate(on presenter: UIViewController, kbps: Int, apply: @escaping (Int) -> Void) {
+        presenter.present(TVExactBitrateDetail(kbps: kbps, onApply: apply), animated: true)
+    }
+}
 #endif

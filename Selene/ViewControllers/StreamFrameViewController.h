@@ -70,6 +70,11 @@
 - (void)returnToMainFrame;
 #if TARGET_OS_TV
 - (void)showTVStreamMenu;
+- (void)tvSetInputPaused:(BOOL)paused;
+- (void)tvPresentSettings;
+- (void)tvDisconnectCloseApp:(BOOL)closeApp;
+- (void)tvSetStats:(NSInteger)level;
+- (double)tvReceivedMbps;
 #endif
 - (void)bringUpToolboxMenu;
 - (void)bringUpToolboxMenuWithoutWidgetLayoutTool;

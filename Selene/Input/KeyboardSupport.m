@@ -10,7 +10,36 @@
 #include <Limelight.h>
 #include "Selene-Swift.h"
 
+static BOOL seleneInputSuspended = NO;
+static NSMutableSet<NSNumber *> *selenePressedKeys;
+static NSRecursiveLock *seleneKeyLock;
+static void SeleneInitKeyState(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ selenePressedKeys = [NSMutableSet set]; seleneKeyLock = [NSRecursiveLock new]; });
+}
+int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers) {
+    SeleneInitKeyState(); [seleneKeyLock lock];
+#if TARGET_OS_TV
+    if (seleneInputSuspended) { [seleneKeyLock unlock]; return 0; }
+#endif
+    NSNumber *key = @((unsigned short)keyCode);
+    if (action == KEY_ACTION_DOWN) [selenePressedKeys addObject:key]; else [selenePressedKeys removeObject:key];
+    int result = LiSendKeyboardEvent(keyCode, action, modifiers);
+    [seleneKeyLock unlock]; return result;
+}
 @implementation KeyboardSupport
++ (BOOL)forwardingSuspended { SeleneInitKeyState(); [seleneKeyLock lock]; BOOL result = seleneInputSuspended; [seleneKeyLock unlock]; return result; }
++ (void)releaseAllKeys {
+    SeleneInitKeyState(); [seleneKeyLock lock];
+    for (NSNumber *key in selenePressedKeys) LiSendKeyboardEvent(key.shortValue, KEY_ACTION_UP, 0);
+    [selenePressedKeys removeAllObjects]; [seleneKeyLock unlock];
+}
++ (void)setForwardingSuspended:(BOOL)suspended {
+    SeleneInitKeyState(); [seleneKeyLock lock];
+    if (suspended) [self releaseAllKeys];
+    seleneInputSuspended = suspended; [seleneKeyLock unlock];
+}
+
 
 + (BOOL)sendKeyEventForPress:(UIPress*)press down:(BOOL)down API_AVAILABLE(ios(13.4)) {
     if (press.key != nil) {
@@ -39,7 +68,7 @@
         bool physicalGamepadConnected = ControllerUtil.activeStreamingGCControllers.count>0;
         // dispatch_after(dispatch_time(DISPATCH_TIME_NOW, physicalGamepadConnected ? 0.005*NSEC_PER_SEC : 0), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             if(!physicalGamepadConnected)
-                LiSendKeyboardEvent(0x8000 | keyCode,
+                SeleneSendKeyboardEvent(0x8000 | keyCode,
                                     down ? KEY_ACTION_DOWN : KEY_ACTION_UP,
                                     0);
         // });
@@ -265,7 +294,7 @@
         }
     }
     
-    LiSendKeyboardEvent(0x8000 | keyCode,
+    SeleneSendKeyboardEvent(0x8000 | keyCode,
                         down ? KEY_ACTION_DOWN : KEY_ACTION_UP,
                         modifierFlags);
     return true;
