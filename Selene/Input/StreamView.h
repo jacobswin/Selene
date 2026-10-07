@@ -61,6 +61,10 @@
 - (void) saveStreamingGameProfileChanges;
 - (bool) isOnScreenWidgetEnabled;
 
+#if TARGET_OS_TV
+@property(nonatomic) CGRect tvVideoFrame;
+@property(nonatomic) CGSize tvVideoSize;
+#endif
 - (CGSize) getVideoAreaSize;
 - (CGPoint) adjustCoordinatesForVideoArea:(CGPoint)point;
 - (uint16_t)getRotationFromAzimuthAngle:(float)azimuthAngle;

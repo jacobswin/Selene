@@ -117,6 +117,15 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
     [renderer stopFrameInterpolation];
 }
 
+- (void)updateDisplayLayout {
+    // Geometry only: keep the format description, decode session and queued frames.
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    _displayLayer.position = CGPointMake(CGRectGetMidX(_view.bounds),CGRectGetMidY(_view.bounds));
+    _displayLayer.bounds = _view.bounds;
+    [CATransaction commit];
+}
+
 - (void)reinitializeDisplayLayer
 {
     if (_displayLayer == nil) {

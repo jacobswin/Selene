@@ -15,6 +15,7 @@
 #include "Limelight.h"
 
 @interface VideoDecoderRenderer : NSObject
+- (void)updateDisplayLayout;
 
 @property (atomic, readonly) PlotMetrics decodeMetrics;
 @property (atomic, strong) NSNumber *hardwareAcceleration;

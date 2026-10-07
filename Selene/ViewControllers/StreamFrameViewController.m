@@ -824,6 +824,29 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     [self tvSetInputPaused:NO];
     if (closeApp) [self disconnectAndQuitApp]; else [self returnToMainFrame];
 }
+- (void)tvApplyVideoLayout {
+    if (!_streamVideoRenderView || !_streamView) return;
+    CGSize video = _streamMan.videoRenderer.negotiatedSize;
+    if (video.width <= 0 || video.height <= 0) video = CGSizeMake(self.streamConfig.width,self.streamConfig.height);
+    CGRect target = [[TVStreamLayout shared] frame:self.view.bounds.size video:video];
+    CGRect base = AVMakeRectWithAspectRatioInsideRect(video,self.view.bounds);
+    _streamView.frame = self.view.bounds;
+    _streamView.clipsToBounds = YES;
+    _streamView.tvVideoFrame = target; _streamView.tvVideoSize = video;
+    UIView *renderer = self.metalViewController ? self.metalViewController.view : _streamVideoRenderView;
+    if (self.metalViewController && renderer.superview != _streamView) [_streamView insertSubview:renderer atIndex:0];
+    renderer.transform = CGAffineTransformIdentity;
+    renderer.bounds = CGRectMake(0,0,base.size.width,base.size.height);
+    renderer.center = CGPointMake(CGRectGetMidX(target),CGRectGetMidY(target));
+    if (base.size.width > 0 && base.size.height > 0) renderer.transform = CGAffineTransformMakeScale(target.size.width/base.size.width,target.size.height/base.size.height);
+    [renderer setNeedsLayout];
+    [_streamMan.videoRenderer updateDisplayLayout];
+}
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self tvApplyVideoLayout];
+}
+
 - (NSDictionary *)tvStreamMeasurements {
     NSMutableDictionary *values = [[_streamMan streamMeasurements] mutableCopy] ?: [NSMutableDictionary dictionary];
     VideoDecoderRenderer *renderer = _streamMan.videoRenderer;
@@ -1268,6 +1291,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         CGFloat aspectRatio = [aspectRatioNum doubleValue];
         Log(LOG_I, @"Updating StreamView aspect ratio to %.4f", aspectRatio);
         _streamView.streamAspectRatio = aspectRatio;
+#if TARGET_OS_TV
+        [self tvApplyVideoLayout];
+#endif
 #if !TARGET_OS_TV
         _streamView.pencilHandler.streamAspectRatio = aspectRatio;
 #endif
@@ -1579,6 +1605,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 }
 
 - (void) handleViewResize{
+#if TARGET_OS_TV
+    [self tvApplyVideoLayout]; return;
+#endif
     viewIsBeingResized = true;
     
     _streamView.bounds = _deviceWindow.bounds;

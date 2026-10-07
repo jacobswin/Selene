@@ -76,6 +76,7 @@
 - (void)tvSetStats:(NSInteger)level;
 - (double)tvReceivedMbps;
 - (NSDictionary *)tvStreamMeasurements;
+- (void)tvApplyVideoLayout;
 #endif
 - (void)bringUpToolboxMenu;
 - (void)bringUpToolboxMenuWithoutWidgetLayoutTool;

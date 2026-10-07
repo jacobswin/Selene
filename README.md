@@ -37,7 +37,7 @@ Checked items are implemented; physical streaming validation is tracked separate
 - [ ] Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
 - [x] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
 - [ ] Add client-side adaptive bitrate with explicit bounds, packet-loss/latency feedback, manual override, and host capability checks.
-- [ ] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
+- [x] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
 - [ ] Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
 - [ ] Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
 - [ ] Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.

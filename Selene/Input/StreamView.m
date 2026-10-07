@@ -1023,6 +1023,9 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 
 
 - (CGSize) getVideoAreaSize {
+#if TARGET_OS_TV
+    if (self.tvVideoSize.width > 0) return self.tvVideoSize;
+#endif
     if (self.bounds.size.width > self.bounds.size.height * streamAspectRatio) {
         return CGSizeMake(self.bounds.size.height * streamAspectRatio, self.bounds.size.height);
     } else {
@@ -1031,6 +1034,13 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 }
 
 - (CGPoint) adjustCoordinatesForVideoArea:(CGPoint)point {
+#if TARGET_OS_TV
+    if (self.tvVideoSize.width > 0) {
+        if (!CGRectContainsPoint(self.bounds, point) || !CGRectContainsPoint(self.tvVideoFrame, point)) return CGPointMake(-1,-1);
+        return CGPointMake((point.x-self.tvVideoFrame.origin.x)*self.tvVideoSize.width/self.tvVideoFrame.size.width,
+                           (point.y-self.tvVideoFrame.origin.y)*self.tvVideoSize.height/self.tvVideoFrame.size.height);
+    }
+#endif
     // These are now relative to the StreamView, however we need to scale them
     // further to make them relative to the actual video portion.
     float x = point.x - self.bounds.origin.x;

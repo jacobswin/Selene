@@ -78,3 +78,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Shared read-only device, requested and negotiated sections in settings and the stream menu. Actual decoder format, VideoToolbox hardware-use result, dimensions, frame rate, decode time and negotiated audio channels come from session data.
 - Current display HDR format remains unknown where tvOS provides no reliable observation. Audio-session channel count does not certify receiver output. Dolby Vision, Atmos and height channels remain unsupported.
 - Unsigned tvOS Debug build and missing/invalid numeric snapshot tests passed. HDR output and audio receiver verification remain pending on Apple TV.
+
+### Stage 4: picture geometry
+
+- Added persistent fit/stretch, nine anchors, 1% horizontal/vertical adjustment bounded to ±50%, and reset controls in settings and the menu.
+- Transform only the video render surface, leaving overlays and input view full-size. Geometry updates preserve the decoder session and requested dimensions; the old ScreenChanged notification was deliberately avoided because it recreates the decoder.
+- Pure geometry tests passed for wide black bars, independent stretched axes, anchors, clamped offsets and inverse pointer coordinates. tvOS currently uses relative GameController mouse input; absolute pointer conversion rejects black-bar coordinates rather than clamping them to the video edge. Real-device framing and mouse acceptance remain pending.

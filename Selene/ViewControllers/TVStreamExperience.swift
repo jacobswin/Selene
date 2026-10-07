@@ -174,6 +174,7 @@ final class TVStreamMenuController: UIViewController {
             TVStreamEditors.presentBitrate(on: self, kbps: self.session.targetKbps) { [weak self] value in self?.apply(value) }
         }
         right.addArrangedSubview(exact); bitrateButtons = [minus, plus, exact]
+        right.addArrangedSubview(TVStreamButton("Picture layout".localized) { [weak self] in self?.present(TVStreamLayoutController(),animated:true) })
         right.addArrangedSubview(status); right.addArrangedSubview(UIView())
         left.addArrangedSubview(UIView())
         session.menuChanged = { [weak self] in self?.refresh() }
@@ -390,6 +391,64 @@ final class TVStreamCapabilityController: UITableViewController {
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if presses.contains(where:{$0.type == .menu}) { close(); return }; super.pressesEnded(presses,with:event)
     }
+}
+
+
+// Pure geometry shared by rendering and absolute pointer conversion.
+struct TVStreamGeometry {
+    static func frame(container: CGSize, video: CGSize, stretch: Bool, alignment: Int, x: Double, y: Double) -> CGRect {
+        guard container.width > 0, container.height > 0, video.width > 0, video.height > 0 else { return .zero }
+        let scale = min(container.width/video.width, container.height/video.height)
+        let size = stretch ? container : CGSize(width:video.width*scale, height:video.height*scale)
+        let anchor = min(8,max(0,alignment))
+        return CGRect(x:(container.width-size.width)*CGFloat(anchor%3)/2 + container.width*CGFloat(min(50,max(-50,x)))/100,
+                      y:(container.height-size.height)*CGFloat(anchor/3)/2 + container.height*CGFloat(min(50,max(-50,y)))/100,
+                      width:size.width,height:size.height)
+    }
+    static func inverse(point: CGPoint, frame: CGRect, video: CGSize, container: CGSize) -> CGPoint? {
+        guard frame.width > 0, frame.height > 0, video.width > 0, video.height > 0,
+              CGRect(origin:.zero,size:container).contains(point), frame.contains(point) else { return nil }
+        return CGPoint(x:(point.x-frame.minX)*video.width/frame.width,y:(point.y-frame.minY)*video.height/frame.height)
+    }
+}
+// End pure geometry.
+@objcMembers final class TVStreamLayout: NSObject {
+    static let shared = TVStreamLayout()
+    private let defaults = UserDefaults.standard
+    var stretch: Bool { get { defaults.bool(forKey:"Selene.layout.stretch") } set { defaults.set(newValue,forKey:"Selene.layout.stretch"); apply() } }
+    var alignment: Int { get { defaults.object(forKey:"Selene.layout.anchor") == nil ? 4 : min(8,max(0,defaults.integer(forKey:"Selene.layout.anchor"))) } set { defaults.set(min(8,max(0,newValue)),forKey:"Selene.layout.anchor"); apply() } }
+    var x: Double { get { min(50,max(-50,defaults.double(forKey:"Selene.layout.x"))) } set { defaults.set(min(50,max(-50,newValue)),forKey:"Selene.layout.x"); apply() } }
+    var y: Double { get { min(50,max(-50,defaults.double(forKey:"Selene.layout.y"))) } set { defaults.set(min(50,max(-50,newValue)),forKey:"Selene.layout.y"); apply() } }
+    func frame(_ container: CGSize, video: CGSize) -> CGRect { TVStreamGeometry.frame(container:container,video:video,stretch:stretch,alignment:alignment,x:x,y:y) }
+    func reset() { for key in ["stretch","anchor","x","y"] { defaults.removeObject(forKey:"Selene.layout."+key) }; apply() }
+    private func apply() { SeleneTVSession.shared.stream?.tvApplyVideoLayout() }
+}
+final class TVStreamLayoutController: UIViewController {
+    private let layout = TVStreamLayout.shared
+    private let values = tvStreamLabel("",size:25)
+    override func viewDidLoad() {
+        super.viewDidLoad(); view.backgroundColor = UIColor(white:0.035,alpha:1)
+        let stack = UIStackView(); stack.axis = .vertical; stack.spacing = 16
+        stack.addArrangedSubview(tvStreamLabel("Picture layout".localized,size:38)); stack.addArrangedSubview(values)
+        let modes = UIStackView(arrangedSubviews:[TVStreamButton("Keep aspect ratio".localized){ [weak self] in self?.layout.stretch=false; self?.refresh() },TVStreamButton("Stretch to fill".localized){ [weak self] in self?.layout.stretch=true; self?.refresh() }]); modes.distribution = .fillEqually; modes.spacing=16; stack.addArrangedSubview(modes)
+        for row in 0..<3 {
+            let names = [["Top left","Top center","Top right"],["Center left","Center","Center right"],["Bottom left","Bottom center","Bottom right"]]
+            let line = UIStackView(); line.distribution = .fillEqually; line.spacing=16
+            for column in 0..<3 { line.addArrangedSubview(TVStreamButton(names[row][column].localized){ [weak self] in self?.layout.alignment=row*3+column; self?.refresh() }) }; stack.addArrangedSubview(line)
+        }
+        for horizontal in [true,false] {
+            let line = UIStackView(); line.distribution = .fillEqually; line.spacing=16
+            for direction in [-1,1] { line.addArrangedSubview(TVStreamButton((horizontal ? "Horizontal offset" : "Vertical offset").localized + (direction<0 ? " −1%" : " +1%")){ [weak self] in guard let self else { return }; if horizontal { self.layout.x += Double(direction) } else { self.layout.y += Double(direction) }; self.refresh() }) }; stack.addArrangedSubview(line)
+        }
+        stack.addArrangedSubview(TVStreamButton("Reset".localized){ [weak self] in self?.layout.reset(); self?.refresh() })
+        stack.addArrangedSubview(TVStreamButton("Done".localized){ [weak self] in self?.dismiss(animated:true) })
+        stack.translatesAutoresizingMaskIntoConstraints=false; view.addSubview(stack)
+        NSLayoutConstraint.activate([stack.widthAnchor.constraint(equalTo:view.widthAnchor,multiplier:0.72),stack.centerXAnchor.constraint(equalTo:view.centerXAnchor),stack.centerYAnchor.constraint(equalTo:view.centerYAnchor)])
+        refresh()
+    }
+    private func refresh() { values.text = (layout.stretch ? "Stretch to fill" : "Keep aspect ratio").localized + String(format:" · X %.0f%% · Y %.0f%%",layout.x,layout.y) }
+    override func pressesBegan(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event) }
+    override func pressesEnded(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { dismiss(animated:true); return }; super.pressesEnded(presses,with:event) }
 }
 
 #endif
