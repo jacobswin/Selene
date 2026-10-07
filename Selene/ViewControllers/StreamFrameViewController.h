@@ -68,6 +68,9 @@
 - (void)setMagnifierViewportInteractionEnabled:(BOOL)enabled;
 - (void)resetMagnifierStreamViewWithAnimated:(BOOL)animated;
 - (void)returnToMainFrame;
+#if TARGET_OS_TV
+- (void)showTVStreamMenu;
+#endif
 - (void)bringUpToolboxMenu;
 - (void)bringUpToolboxMenuWithoutWidgetLayoutTool;
 - (void)remoteTextInputForTvOS;

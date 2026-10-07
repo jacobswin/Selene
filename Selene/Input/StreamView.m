@@ -546,6 +546,12 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 
 - (void)tvOSRemoteMenuTapped:(NSNotification *)notification {
     NSLog(@"StreamView received Menu tap");
+#if TARGET_OS_TV
+    if (!tvOSRemoteTextInputLoopActive) {
+        [_streamFrameVC showTVStreamMenu];
+        return;
+    }
+#endif
     [keyInputField resignFirstResponder];
     [keyInputField removeFromSuperview];
     LiSendKeyboardEvent(0x0d, KEY_ACTION_DOWN, 0);

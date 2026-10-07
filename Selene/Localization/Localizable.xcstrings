@@ -24718,6 +24718,182 @@
           }
         }
       }
+    },
+    "Stream menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stream menu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流菜单"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流選單"
+          }
+        }
+      }
+    },
+    "Continue streaming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue streaming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续串流"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續串流"
+          }
+        }
+      }
+    },
+    "Stream settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stream settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流設定"
+          }
+        }
+      }
+    },
+    "Disconnect stream": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect stream"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开串流"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷串流"
+          }
+        }
+      }
+    },
+    "Disconnect and close app": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect and close app"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开串流并关闭应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷串流並關閉應用程式"
+          }
+        }
+      }
+    },
+    "Close the app on your PC?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close the app on your PC?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭电脑上的应用？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉電腦上的應用程式？"
+          }
+        }
+      }
+    },
+    "Unsaved progress may be lost.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved progress may be lost."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未保存的进度可能会丢失。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未儲存的進度可能會遺失。"
+          }
+        }
+      }
+    },
+    "TV audio configuration help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stereo uses the system audio engine. 5.1 and 7.1 use SDL and require compatible host and physical audio output. Audio layout changes take effect on the next stream. Dolby Atmos and height-channel layouts are not supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立体声使用系统音频引擎；5.1 和 7.1 使用 SDL，需要主机与实际音频输出支持。声道布局更改在下次串流时生效。不支持 Dolby Atmos 或高度声道布局。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立體聲使用系統音訊引擎；5.1 與 7.1 使用 SDL，需要主機與實際音訊輸出支援。聲道配置變更在下次串流時生效。不支援 Dolby Atmos 或高度聲道配置。"
+          }
+        }
+      }
     }
   },
   "version": "1.1"

@@ -805,15 +805,49 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 }
 
 #if TARGET_OS_TV
-- (void)controllerPauseButtonPressed:(id)sender { }
-- (void)controllerPauseButtonDoublePressed:(id)sender {
-    Log(LOG_I, @"Menu double-pressed -- backing out of stream");
-    [self returnToMainFrame];
+- (void)showTVStreamMenu {
+    if (self.navigationController.topViewController != self || self.presentedViewController ||
+        !self.view.window) return;
+    self.controllerUserInteractionEnabled = YES;
+    UIAlertController *menu = [UIAlertController alertControllerWithTitle:[LocalizationHelper localizedStringForKey:@"Stream menu"]
+        message:nil preferredStyle:UIAlertControllerStyleAlert];
+    __weak typeof(self) weakSelf = self;
+    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Continue streaming"]
+        style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            weakSelf.controllerUserInteractionEnabled = NO;
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Stream settings"]
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            weakSelf.controllerUserInteractionEnabled = NO;
+            // Present after the alert has completed its dismissal.
+            [weakSelf dismissViewControllerAnimated:YES completion:^{ [weakSelf expandSettingsView]; }];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect stream"]
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            weakSelf.controllerUserInteractionEnabled = NO;
+            [weakSelf returnToMainFrame];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect and close app"]
+        style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            [weakSelf dismissViewControllerAnimated:YES completion:^{
+                UIAlertController *confirm = [UIAlertController alertControllerWithTitle:[LocalizationHelper localizedStringForKey:@"Close the app on your PC?"]
+                    message:[LocalizationHelper localizedStringForKey:@"Unsaved progress may be lost."] preferredStyle:UIAlertControllerStyleAlert];
+                [confirm addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Cancel"] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+                    weakSelf.controllerUserInteractionEnabled = NO;
+                }]];
+                [confirm addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Disconnect and close app"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+                    weakSelf.controllerUserInteractionEnabled = NO;
+                    [weakSelf disconnectAndQuitApp];
+                }]];
+                [weakSelf presentViewController:confirm animated:YES completion:nil];
+            }];
+        }]];
+    [self presentViewController:menu animated:YES completion:nil];
 }
-- (void)controllerPlayPauseButtonPressed:(id)sender {
-    Log(LOG_I, @"Play/Pause button pressed -- backing out of stream");
-    [self returnToMainFrame];
-}
+
+- (void)controllerPauseButtonPressed:(id)sender { [self showTVStreamMenu]; }
+- (void)controllerPauseButtonDoublePressed:(id)sender { [self showTVStreamMenu]; }
+- (void)controllerPlayPauseButtonPressed:(id)sender { [self showTVStreamMenu]; }
 #endif
 
 - (void)popKeyboardAndMouseStreamingTip {
@@ -873,6 +907,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 
 #if TARGET_OS_TV
     self.controllerUserInteractionEnabled = NO;
+    UITapGestureRecognizer *backMenu = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showTVStreamMenu)];
+    backMenu.allowedPressTypes = @[@(UIPressTypeMenu)];
+    [self.view addGestureRecognizer:backMenu];
 #else
     self.controllerUserInteractionEnabled = NO;
 #endif

@@ -51,3 +51,12 @@ A fresh recursive clone from GitHub succeeded. In that clone, all three producti
 GitHub-hosted unsigned Debug and Release builds passed under Xcode 26 after tvOS platform support was provisioned: [successful CI run](https://github.com/jacobswin/Selene/actions/runs/37487413024). The earlier missing-platform failure was an environment setup issue and is retained in Actions history.
 
 The publishable tree was checked for local device identifiers, pairing evidence, signing files and credential patterns; no such material was found. This build verification does not change the physical-stream acceptance limits above.
+
+## 2026-10-07: audio cleanup and stream menu
+
+- Implemented one tvOS Stereo choice, 5.1 and 7.1; removed unsupported placeholder layouts. Legacy system/SDL stereo values resolve to Stereo, existing surround values remain valid.
+- Added the Back/Menu stream dialog with Continue, Stream settings, Disconnect, and confirmed Disconnect and close app. Existing quit request/error handling is reused. Settings presentation uses the visible stream controller and tracks streaming state.
+- Unsigned tvOS Debug, simulator Debug and signed device Debug builds passed. Production audio preference compatibility, bitrate, resolution and localization checks passed.
+- On the 3840×2160 simulator, remote navigation opened Audio Configuration and showed exactly Stereo / 5.1-channel / 7.1-channel plus Cancel. Existing 5.1 preference remained selected. This is UI evidence, not physical surround-output validation.
+- Actual live-stream menu dismissal, settings return, both exit actions, host rejection, keyboard/controller interaction and application focus restoration remain unverified on the Apple TV. Track them separately from implemented code.
+- Reviewed the user-provided Android stream-menu photo and all 14 settings photos. Matching English/Chinese README checklists and the Android feasibility review record client tasks, host/platform investigations and excluded touch/Android-only features. Personal reference photos are not published.

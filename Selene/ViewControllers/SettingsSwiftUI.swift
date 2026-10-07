@@ -273,7 +273,7 @@ private let settingsLegacyHelpByStackIdentifier: [String: SettingsLegacyHelpCont
     // Audio
     "redirectMicStack": .init(messageKey: "redirectMicStackTip", learnMoreURLKey: nil),
     "useBuiltinMicStack": .init(messageKey: "useBuiltinMicStackTip", learnMoreURLKey: nil),
-    "audioConfigStack": .init(messageKey: "audioConfigStackTip", learnMoreURLKey: nil),
+    "audioConfigStack": .init(messageKey: PublicUtils.isTVOS ? "TV audio configuration help" : "audioConfigStackTip", learnMoreURLKey: nil),
 
     // Others
     "unlockDisplayOrientationStack": .init(messageKey: "unlockDisplayOrientationStackTip", learnMoreURLKey: nil),
@@ -1170,6 +1170,10 @@ private func settingsAudioConfigValuesForCurrentOS() -> [Int] {
 }
 
 private func settingsSanitizedAudioConfig(_ value: Int) -> Int {
+#if os(tvOS)
+    // Keep legacy SDL stereo preferences readable through the single stereo choice.
+    if value == AudioConfig.stereoSDL.rawValue { return AudioConfig.stereo.rawValue }
+#endif
     let values = settingsAudioConfigValuesForCurrentOS()
     return values.contains(value) ? value : AudioConfig.stereo.rawValue
 }
@@ -3257,12 +3261,11 @@ final class SettingsSession: NSObject, ObservableObject {
             SettingsPickerOption(
                 value: AudioConfig.stereo.rawValue,
                 title: "Stereo".localized
-            ),
-            SettingsPickerOption(
-                value: AudioConfig.stereoSDL.rawValue,
-                title: "Stereo(SDL)".localized
             )
         ]
+#if !os(tvOS)
+        options.append(.init(value: AudioConfig.stereoSDL.rawValue, title: "Stereo(SDL)".localized))
+#endif
         if #available(iOS 18.0, tvOS 18.0, *) {
             options.append(contentsOf: [
                 SettingsPickerOption(
@@ -3277,13 +3280,7 @@ final class SettingsSession: NSObject, ObservableObject {
                 )
             ])
         }
-#if os(tvOS)
-        options.append(contentsOf: [
-            .init(value: -21, title: "2.1 (host has no separate 3-channel configuration)".localized, isEnabled: false),
-            .init(value: -512, title: "5.1.2 (host has no height-channel layout)".localized, isEnabled: false),
-            .init(value: -714, title: "7.1.4 (client does not support 12 channels yet)".localized, isEnabled: false)
-        ])
-#endif
+
         return options
     }
 
@@ -7951,14 +7948,16 @@ private extension SettingsSession {
 #if os(tvOS)
 extension MainFrameViewController {
     @objc func presentTVSettings() {
-        guard presentedViewController == nil else { return }
+        let presenter = navigationController?.topViewController ?? self
+        guard presenter.presentedViewController == nil else { return }
+        settingsExpandedInStreamView = isStreaming()
         let controller = SettingsViewController()
         controller.mainFrameViewController = self
         controller.title = "Settings".localized
         let navigation = UINavigationController(rootViewController: controller)
         navigation.modalPresentationStyle = .fullScreen
         ControllerNavigator.setUINavigationDelegate(controller)
-        present(navigation, animated: true) {
+        presenter.present(navigation, animated: true) {
             controller.swiftUISettingsStore?.updateStreamingState(self.isStreaming(), menuIsOpening: true)
         }
     }
@@ -8199,7 +8198,10 @@ private final class TVNativeSettingsTableController: UITableViewController {
         if let controller = store.presentingController as? SettingsViewController {
             ControllerNavigator.restorePreviousUINavigationDelegate(ifCurrentDelegateIs: controller)
         }
-        navigationController?.dismiss(animated: true)
+        let mainFrame = (store.presentingController as? SettingsViewController)?.mainFrameViewController
+        navigationController?.dismiss(animated: true) { [weak mainFrame] in
+            mainFrame?.settingsExpandedInStreamView = false
+        }
     }
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if presses.contains(where: { $0.type == .menu }) { return }
