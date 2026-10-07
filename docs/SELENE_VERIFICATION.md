@@ -99,3 +99,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - All ten tvOS test scripts passed. Final 4K simulator and signed device builds passed after the localization/resource updates.
 - When adaptive control is enabled before starting a stream, settings now explicitly show “Enabled for next stream” instead of implying that the preference was ignored.
 - Latest GitHub Debug/Release checks were still running at handoff; the four preceding stage commits completed successfully. Physical acceptance remains pending because the Mac is locked and the live stream has not been observed.
+
+### Published stage 5 CI result
+
+- The published stage 5 commit `fac3fae6` subsequently passed both GitHub Debug and Release builds (run 37642110077).
+- Follow-up publication encountered repeated Git server HTTP 500 errors and GitHub connector internal errors. The already-published five-stage implementation remains on main; local follow-up changes are committed and retain the existing history. No private reference photos, signing materials or logs were uploaded.
+- Real-device UI and streaming acceptance is still pending; the Mac is locked.
