@@ -93,3 +93,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Production policy and transport/coordinator tests passed for cooldown, bounds, RTT/loss streaks, invalid windows, unsupported hosts, three timeout statuses, manual override and storage isolation. Input gate also covers controller motion and X1 mouse callbacks.
 - Unsigned stage 5, signed Apple TV Debug and 4K simulator builds passed; installed on the existing Apple TV without changing its bundle identifier. The prior four GitHub stage builds passed.
 - Mac was locked during the attempted simulator UI inspection. Therefore new overlay geometry, native focus, keyboard interaction, three-language visual review, live 4K throughput/HDR/audio and actual adaptive network behavior remain unverified on screen; no new screenshots were published. Real-device acceptance stays unchecked.
+
+### Delivery follow-up
+
+- All ten tvOS test scripts passed. Final 4K simulator and signed device builds passed after the localization/resource updates.
+- When adaptive control is enabled before starting a stream, settings now explicitly show “Enabled for next stream” instead of implying that the preference was ignored.
+- Latest GitHub Debug/Release checks were still running at handoff; the four preceding stage commits completed successfully. Physical acceptance remains pending because the Mac is locked and the live stream has not been observed.

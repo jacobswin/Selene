@@ -525,7 +525,7 @@ final class TVAdaptiveController {
     } set { defaults.set(min(800000,max(500,newValue)),forKey:"Selene.abr.upper"); if lower > upper { lower=upper }; restartBounds() } }
     var lower: Int { get { min(upper,max(500,defaults.object(forKey:"Selene.abr.lower") == nil ? upper/4 : defaults.integer(forKey:"Selene.abr.lower"))) } set { defaults.set(min(upper,max(500,newValue)),forKey:"Selene.abr.lower"); restartBounds() } }
     var statusText: String {
-        let state = unsupported ? "Host does not support bitrate adjustment" : paused ? "Automatic control paused" : active ? "Automatic control active" : "Automatic control off"
+        let state = unsupported ? "Host does not support bitrate adjustment" : paused ? "Automatic control paused" : active ? "Automatic control active" : enabled ? "Enabled for next stream" : "Automatic control off"
         return state.localized + (reason.isEmpty ? "" : " · " + reason.localized)
     }
     func stop() { timer?.invalidate(); timer=nil; active=false; policy=TVAdaptivePolicy() }

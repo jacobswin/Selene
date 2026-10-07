@@ -26235,6 +26235,28 @@
           }
         }
       }
+    },
+    "Enabled for next stream": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled for next stream"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下次串流时启用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下次串流時啟用"
+          }
+        }
+      }
     }
   },
   "version": "1.1"
