@@ -119,3 +119,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - User confirmed physical streaming video works but Menu still popped out of streaming; simulator streaming is excluded from this acceptance run at the user's request.
 - Added a root-container Menu recognizer ahead of the navigation controller. It handles only a visible active stream, and yields to an existing modal or expanded settings. Stream input cleanup continues through the shared menu path.
 - Signed Apple TV Debug build passed; installed and relaunched on the paired device. Physical open/close and settings-return acceptance is awaiting the user's result; no acceptance checkbox was marked complete.
+
+### 2026-10-08: missing tvOS navigation class
+
+- Found the tvOS storyboard referenced `SeleneNoFocusNavigationController` but no implementation existed in the source tree. Implemented that class in the compiled scene source.
+- Native Menu press handling and navigation `popViewControllerAnimated:` now route an active stream to its menu; explicit menu disconnect still uses the existing `popToRootViewControllerAnimated:` cleanup path.
+- Signed device build passed, class symbol verified in the built application, installed and relaunched on Apple TV. Attached a local console for physical-event diagnosis; no private console logs are tracked. Menu behavior remains pending physical acceptance.

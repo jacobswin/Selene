@@ -17,6 +17,38 @@
 NSNotificationName const SeleneTvOSRemoteMenuTappedNotification = @"SeleneTvOSRemoteMenuTappedNotification";
 NSNotificationName const SeleneTvOSRemotePlayPauseTappedNotification = @"SeleneTvOSRemotePlayPauseTappedNotification";
 
+#if TARGET_OS_TV
+// Matches the class referenced by the tvOS storyboard. System Back can pop
+// the navigation stack without reaching a non-focusable streaming view.
+@interface SeleneNoFocusNavigationController : UINavigationController
+@end
+@implementation SeleneNoFocusNavigationController
+- (BOOL)canBecomeFocused { return NO; }
+- (StreamFrameViewController *)activeStream {
+    UIViewController *top = self.topViewController;
+    return [top isKindOfClass:[StreamFrameViewController class]] ? (StreamFrameViewController *)top : nil;
+}
+- (UIViewController *)popViewControllerAnimated:(BOOL)animated {
+    StreamFrameViewController *stream = [self activeStream];
+    if (stream) {
+        NSLog(@"Selene: converted navigation Back to stream menu");
+        [stream showTVStreamMenu];
+        return nil;
+    }
+    return [super popViewControllerAnimated:animated];
+}
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    if ([self activeStream]) for (UIPress *press in presses) if (press.type == UIPressTypeMenu) return;
+    [super pressesBegan:presses withEvent:event];
+}
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    StreamFrameViewController *stream = [self activeStream];
+    if (stream) for (UIPress *press in presses) if (press.type == UIPressTypeMenu) { [stream showTVStreamMenu]; return; }
+    [super pressesEnded:presses withEvent:event];
+}
+@end
+#endif
+
 @interface SeleneControllerRootViewController : GCEventViewController <UIGestureRecognizerDelegate>
 
 - (instancetype)initWithContentViewController:(UIViewController *)contentViewController;
