@@ -8010,6 +8010,16 @@ private final class TVModernSettingsController: UIViewController {
             child.view.translatesAutoresizingMaskIntoConstraints = false
             child.didMove(toParent: self)
         }
+        // Bridge categories below the last detail row, where spatial focus has no horizontal candidate.
+        let detailGuide = UIFocusGuide()
+        view.addLayoutGuide(detailGuide)
+        detailGuide.preferredFocusEnvironments = [details.tableView]
+        NSLayoutConstraint.activate([
+            detailGuide.leadingAnchor.constraint(equalTo: categories.view.trailingAnchor),
+            detailGuide.trailingAnchor.constraint(equalTo: details.view.leadingAnchor),
+            detailGuide.topAnchor.constraint(equalTo: categories.view.topAnchor),
+            detailGuide.bottomAnchor.constraint(equalTo: categories.view.bottomAnchor)
+        ])
         hint.text = "Left/right to switch areas · Select to edit · Back to close".localized
         hint.font = .systemFont(ofSize: 20)
         hint.textColor = UIColor(white: 0.5, alpha: 1)

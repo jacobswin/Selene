@@ -1486,6 +1486,7 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
 #if TARGET_OS_TV
+    for (UIPress *press in presses) if (press.type == UIPressTypeMenu) return;
     if ([KeyboardSupport forwardingSuspended]) { [super pressesBegan:presses withEvent:event]; return; }
 #endif
     if (@available(iOS 17.0, *)) nil;
@@ -1523,6 +1524,7 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
 #if TARGET_OS_TV
+    for (UIPress *press in presses) if (press.type == UIPressTypeMenu) { [_streamFrameVC showTVStreamMenu]; return; }
     if ([KeyboardSupport forwardingSuspended]) { [super pressesEnded:presses withEvent:event]; return; }
 #endif
     if (@available(iOS 17.0, *)) nil;

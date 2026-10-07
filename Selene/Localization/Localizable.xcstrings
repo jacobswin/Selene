@@ -24130,7 +24130,6 @@
       }
     },
     "Supported": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -26254,6 +26253,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "下次串流時啟用"
+          }
+        }
+      }
+    },
+    "Display mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示模式"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示模式"
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用"
           }
         }
       }

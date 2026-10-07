@@ -345,7 +345,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 }
 
 - (void)configGestures{
-#if !TARGET_OS_TV
+#if TARGET_OS_TV
+    // Siri Remote Menu is consumed through the responder chain below.
+#else
     _slideToSettingsRecognizer = [[CustomEdgeSlideGestureRecognizer alloc] initWithTarget:self action:@selector(edgeSwiped)];
     _slideToSettingsRecognizer.excludePencilEvent = _oscProfile.disablePencilSlideGestures;
     _slideToSettingsRecognizer.edgeTolerance = _settings.edgeSlidingSensitivity.floatValue;
@@ -809,12 +811,20 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 }
 
 #if TARGET_OS_TV
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    for (UIPress *press in presses) if (press.type == UIPressTypeMenu) return;
+    [super pressesBegan:presses withEvent:event];
+}
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    for (UIPress *press in presses) if (press.type == UIPressTypeMenu) { [self showTVStreamMenu]; return; }
+    [super pressesEnded:presses withEvent:event];
+}
 - (void)showTVStreamMenu {
-    if (self.navigationController.topViewController != self || self.presentedViewController || !self.view.window) return;
+    if (self.presentedViewController || !self.view.window) return;
     [[SeleneTVSession shared] showMenuFrom:self];
 }
 - (void)tvSetInputPaused:(BOOL)paused {
-    self.controllerUserInteractionEnabled = paused;
+    self.controllerUserInteractionEnabled = YES;
     _streamView.userInteractionEnabled = !paused;
     [KeyboardSupport setForwardingSuspended:paused];
     [_controllerSupport setForwardingSuspended:paused];
@@ -937,10 +947,8 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     [super viewDidLoad];
 
 #if TARGET_OS_TV
-    self.controllerUserInteractionEnabled = NO;
-    UITapGestureRecognizer *backMenu = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showTVStreamMenu)];
-    backMenu.allowedPressTypes = @[@(UIPressTypeMenu)];
-    [self.view addGestureRecognizer:backMenu];
+    self.controllerUserInteractionEnabled = YES;
+    [self configGestures];
 #else
     self.controllerUserInteractionEnabled = NO;
 #endif

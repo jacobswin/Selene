@@ -375,6 +375,16 @@ struct TVStreamCapabilitySnapshot {
     }
 }
 
+private final class TVCapabilityCell: UITableViewCell {
+    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+        super.didUpdateFocus(in: context, with: coordinator)
+        coordinator.addCoordinatedAnimations {
+            self.textLabel?.textColor = self.isFocused ? .black : .white
+            self.detailTextLabel?.textColor = self.isFocused ? .darkGray : .lightGray
+        }
+    }
+}
+
 final class TVStreamCapabilityController: UITableViewController {
     private var snapshot = TVStreamCapabilitySnapshot.capture()
     override func viewDidLoad() {
@@ -388,7 +398,7 @@ final class TVStreamCapabilityController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { snapshot.sections[section].1.count }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { snapshot.sections[section].0 }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style:.subtitle, reuseIdentifier:nil)
+        let cell = TVCapabilityCell(style:.subtitle, reuseIdentifier:nil)
         let row = snapshot.sections[indexPath.section].1[indexPath.row]
         cell.textLabel?.text = row.0; cell.detailTextLabel?.text = row.1
         cell.detailTextLabel?.numberOfLines = 2

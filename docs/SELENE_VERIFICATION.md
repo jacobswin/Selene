@@ -105,3 +105,11 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - The published stage 5 commit `fac3fae6` subsequently passed both GitHub Debug and Release builds (run 37642110077).
 - Follow-up publication encountered repeated Git server HTTP 500 errors and GitHub connector internal errors. The already-published five-stage implementation remains on main; local follow-up changes are committed and retain the existing history. No private reference photos, signing materials or logs were uploaded.
 - Real-device UI and streaming acceptance is still pending; the Mac is locked.
+
+### 2026-10-07: interactive 4K simulator testing
+
+- Verified picture-layout controls, 1% horizontal adjustment, reset action, adaptive enable/disable and exact-bitrate input cancellation using the native remote controls. Paired host opened its application list directly after restart.
+- Fixed a settings focus gap: the bottom capability category could not move right into its short detail list. A native focus guide was verified to restore access.
+- Found capability report white-on-white focused labels and untranslated Display mode/Supported/Unavailable states; fixed focused contrast and English/Simplified Chinese/Traditional Chinese strings. Localization tests passed; final visual acceptance remains pending.
+- User reported no stream return menu on Apple TV. Simulator reproduced the missing menu and a separate video decompression error (-8969). Replaced the gesture-only Menu route with explicit responder handling, enabled UIKit remote delivery and retained the shared input suspension. Debug simulator and signed Apple TV builds passed; updated installation prepared.
+- Final Menu acceptance was interrupted by the Mac locking. Return-menu open/close/settings round trip, physical gamepad delivery and continued physical video/audio remain unverified. No private screenshots or logs were added to the repository.
