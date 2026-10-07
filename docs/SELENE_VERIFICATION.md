@@ -84,3 +84,12 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Added persistent fit/stretch, nine anchors, 1% horizontal/vertical adjustment bounded to ±50%, and reset controls in settings and the menu.
 - Transform only the video render surface, leaving overlays and input view full-size. Geometry updates preserve the decoder session and requested dimensions; the old ScreenChanged notification was deliberately avoided because it recreates the decoder.
 - Pure geometry tests passed for wide black bars, independent stretched axes, anchors, clamped offsets and inverse pointer coordinates. tvOS currently uses relative GameController mouse input; absolute pointer conversion rejects black-bar coordinates rather than clamping them to the video edge. Real-device framing and mouse acceptance remain pending.
+
+### Stage 5: adaptive bitrate and final build checks
+
+- Opt-in only, persistent enable/bounds preferences with safe defaults (saved manual upper limit, 25% lower limit, 0.5 Mbps floor, 800 Mbps ceiling). Automatic targets affect only the active session; manual edits disable automation and persist even when equal to the live target.
+- Samples structured complete video windows once per second. Two >1% network-frame-loss samples or three RTT samples > baseline +20 ms and >1.5x baseline reduce target 20%; 15 healthy seconds (<0.1% loss, RTT within baseline*1.2 +5 ms) raise it 5%. A five-second cooldown follows requests. Decode/render frame drops are not network packet loss and do not trigger this algorithm.
+- Reject missing/no-video/duplicate/reset windows and reset streaks after gaps. Unsupported host responses stop automation; three other failures pause it. Last accepted target remains, with an explicit Enable/Resume action.
+- Production policy and transport/coordinator tests passed for cooldown, bounds, RTT/loss streaks, invalid windows, unsupported hosts, three timeout statuses, manual override and storage isolation. Input gate also covers controller motion and X1 mouse callbacks.
+- Unsigned stage 5, signed Apple TV Debug and 4K simulator builds passed; installed on the existing Apple TV without changing its bundle identifier. The prior four GitHub stage builds passed.
+- Mac was locked during the attempted simulator UI inspection. Therefore new overlay geometry, native focus, keyboard interaction, three-language visual review, live 4K throughput/HDR/audio and actual adaptive network behavior remain unverified on screen; no new screenshots were published. Real-device acceptance stays unchecked.

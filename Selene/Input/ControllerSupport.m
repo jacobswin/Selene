@@ -323,7 +323,7 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                             voidController.lastDeviceAccelSample = mappedDeviceAccelSample;
                             
                             // Convert g to m/s^2
-                            LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                            if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                         LI_MOTION_TYPE_ACCEL,
                                                         mappedDeviceAccelSample.x,
                                                         mappedDeviceAccelSample.y,
@@ -358,35 +358,35 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                         
                         switch (interfaceOrientation) {
                             case UIInterfaceOrientationLandscapeLeft:
-                                LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                             LI_MOTION_TYPE_GYRO,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.y * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.x * 57.2957795f * self->_gyroSensitivity : 0);
                                 break;
                             case UIInterfaceOrientationLandscapeRight:
-                                LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                             LI_MOTION_TYPE_GYRO,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.y * -57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.x * -57.2957795f * self->_gyroSensitivity : 0);
                                 break;
                             case UIInterfaceOrientationPortrait:
-                                LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                             LI_MOTION_TYPE_GYRO,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.x * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.y * -57.2957795f * self->_gyroSensitivity : 0);
                                 break;
                             case UIInterfaceOrientationPortraitUpsideDown:
-                                LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                             LI_MOTION_TYPE_GYRO,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.x * -57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.y * 57.2957795f * self->_gyroSensitivity : 0);
                                 break;
                             default:
-                                LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                             LI_MOTION_TYPE_GYRO,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.y * 57.2957795f * self->_gyroSensitivity : 0,
                                                             self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
@@ -396,14 +396,14 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                         
                         /*
                         if(UIApplication.sharedApplication.windows.firstObject.windowScene.interfaceOrientation == 4){//check for landscape left or landscape right
-                            LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                            if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                         LI_MOTION_TYPE_GYRO,
                                                         self->_gyroEnabledFlag ? deviceGyroSample.y * 57.2957795f * self->_gyroSensitivity : 0,
                                                         self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
                                                         self->_gyroEnabledFlag ? deviceGyroSample.x * 57.2957795f * self->_gyroSensitivity : 0);
                         }
                         else{
-                            LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                            if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                         LI_MOTION_TYPE_GYRO,
                                                         self->_gyroEnabledFlag ? deviceGyroSample.y * -57.2957795f * self->_gyroSensitivity : 0,
                                                         self->_gyroEnabledFlag ? deviceGyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,
@@ -445,7 +445,7 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                                     
                                     voidController.lastAccelSample = accelSample;
                                     
-                                    LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                    if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                                 LI_MOTION_TYPE_ACCEL,
                                                                 accelSample.x * -9.80665f,
                                                                 accelSample.y * -9.80665f,
@@ -482,7 +482,7 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                                     
                                     // Convert rad/s to deg/s
                                     // NSLog(@"sending controller gyro data, gyroSample data 00: %f, playerIndex: %ld, obj: %@",gyroSample.x, (long)voidController.gamepad.playerIndex, voidController);
-                                    LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
+                                    if (!self.forwardingSuspended) LiSendControllerMotionEvent((uint8_t)voidController.controllerNumber,
                                                                 LI_MOTION_TYPE_GYRO,
                                                                 self->_gyroEnabledFlag ? gyroSample.x * 57.2957795f * self->_gyroSensitivity : 0,
                                                                 self->_gyroEnabledFlag ? gyroSample.z * 57.2957795f * self->_gyroSensitivity : 0,

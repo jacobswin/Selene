@@ -5,6 +5,7 @@ source=(Path(__file__).resolve().parents[1]/'Selene/ViewControllers/TVStreamExpe
 core=source.split('@objcMembers final class SeleneTVSession: NSObject {')[1].split('    @objc(showMenuFrom:)')[0]
 program=r'''
 import Foundation
+final class TVAdaptiveController { init(session:SeleneTVSession) {}; func start() {}; func stop() {}; func manualOverride() {} }
 final class Config { var bitRate: Int32 = 150000 }
 final class Host {
  var status = 200; var calls = 0; var requested = 0

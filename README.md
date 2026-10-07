@@ -21,6 +21,9 @@ An open-source game streaming client for **Apple TV**, built on the Moonlight ec
 - H.264 and HEVC; HDR10 through HEVC Main10 when the host, decoder, and display support it.
 - AV1 is always listed, but selectable only when hardware decoding is available. No software AV1 decoding.
 - Stereo, 5.1, and 7.1 audio, subject to host and output-device capability.
+- Dark in-stream menu with live bitrate, statistics, keyboard shortcuts and explicit text entry.
+- Shared device/requested/negotiated capability report, plus persistent picture fitting, alignment and offsets.
+- Optional adaptive bitrate with explicit bounds, network frame-loss/RTT feedback, manual override and host-rejection handling. It starts disabled and keeps saved manual bitrate unchanged.
 
 The current stream path does **not support Dolby Vision or Dolby Atmos**. HDR10 is not Dolby Vision; Opus decoded to multichannel PCM is not Atmos. 2.1, 5.1.2, and 7.1.4 are not implemented as selectable output layouts. High-bitrate 4K60, sustained HDR playback, and physical audio output still require device validation.
 
@@ -36,7 +39,7 @@ Checked items are implemented; physical streaming validation is tracked separate
 - [ ] Investigate in-session resolution and HDR changes with Foundation Sunshine; expose only negotiated support, otherwise clearly require reconnecting.
 - [ ] Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
 - [x] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
-- [ ] Add client-side adaptive bitrate with explicit bounds, packet-loss/latency feedback, manual override, and host capability checks.
+- [x] Add client-side adaptive bitrate with explicit bounds, network-frame-loss/latency feedback, manual override, and host capability checks.
 - [x] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
 - [ ] Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
 - [ ] Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.

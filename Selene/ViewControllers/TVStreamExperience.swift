@@ -16,18 +16,22 @@ import VideoToolbox
     var nextFocus = "continue"
     var lastMessage = ""
     var menuChanged: (() -> Void)?
+    @nonobjc lazy var adaptive = TVAdaptiveController(session: self)
 
     func begin(_ controller: StreamFrameViewController) {
         generation = UUID(); stream = controller
         targetKbps = Int(controller.streamConfig.bitRate)
         pending = false; lastMessage = ""; returningFromSettings = false
+        adaptive.start()
     }
     func end() {
+        adaptive.stop()
         generation = UUID(); pending = false; stream = nil
         returningFromSettings = false; menuChanged = nil
         KeyboardSupport.releaseAllKeys()
     }
     func requestManual(_ kbps: Int, completion: @escaping (Bool, Int, Int) -> Void) {
+        adaptive.manualOverride()
         request(kbps, saveManual: true, completion: completion)
     }
     func request(_ kbps: Int, saveManual: Bool, completion: @escaping (Bool, Int, Int) -> Void) {
@@ -37,7 +41,10 @@ import VideoToolbox
         }
         let requested = min(800_000, max(500, kbps))
         let previous = targetKbps
-        if requested == previous { completion(true, previous, 200); return }
+        if requested == previous {
+            if saveManual { let data = DataManager(); data.retrieveSettings()?.bitrate = NSNumber(value:requested); data.saveData() }
+            completion(true, previous, 200); return
+        }
         pending = true; menuChanged?()
         let token = generation
         requests.async { [weak self, weak host] in
@@ -175,6 +182,7 @@ final class TVStreamMenuController: UIViewController {
         }
         right.addArrangedSubview(exact); bitrateButtons = [minus, plus, exact]
         right.addArrangedSubview(TVStreamButton("Picture layout".localized) { [weak self] in self?.present(TVStreamLayoutController(),animated:true) })
+        right.addArrangedSubview(TVStreamButton("Adaptive bitrate".localized) { [weak self] in self?.present(TVAdaptiveSettingsController(), animated:true) })
         right.addArrangedSubview(status); right.addArrangedSubview(UIView())
         left.addArrangedSubview(UIView())
         session.menuChanged = { [weak self] in self?.refresh() }
@@ -192,7 +200,10 @@ final class TVStreamMenuController: UIViewController {
     func refresh() {
         bitrate.text = String(format: "%.1f Mbps", Double(session.targetKbps) / 1000)
         received.text = LocalizationHelper.localizedString(forKey: "Received bitrate: %.1f Mbps", session.stream?.tvReceivedMbps() ?? 0)
-        status.text = session.pending ? "Applying bitrate…".localized : session.lastMessage
+        status.text = (session.pending ? "Applying bitrate…".localized : session.lastMessage) + "\n" + session.adaptive.statusText
+        if let dropped = session.stream?.tvStreamMeasurements()["renderDroppedFrames"] as? NSNumber, dropped.doubleValue > 0 {
+            status.text = (status.text ?? "") + "\n" + "Render frame drops detected; automatic bitrate uses network measurements only.".localized
+        }
         bitrateButtons.forEach { $0.isEnabled = !session.pending; $0.alpha = session.pending ? 0.4 : 1 }
     }
     func apply(_ kbps: Int) { session.requestManual(kbps) { [weak self] _, _, _ in self?.refresh() } }
@@ -358,6 +369,7 @@ struct TVStreamCapabilitySnapshot {
                 ("HDR".localized, hdr),
                 ("Received frame rate".localized, observed("receivedFPS", format:"%.2f FPS")),
                 ("Decode time".localized, observed("decodeMS", format:"%.2f ms")),
+                ("Render frame drops".localized, observed("renderDroppedFrames", format:"%.0f")),
                 ("Negotiated audio channels".localized, observed("audioChannels", format:"%.0f")),
                 ("Received bitrate".localized, observed("receivedMbps", format:"%.1f Mbps"))])])
     }
@@ -447,6 +459,129 @@ final class TVStreamLayoutController: UIViewController {
         refresh()
     }
     private func refresh() { values.text = (layout.stretch ? "Stretch to fill" : "Keep aspect ratio").localized + String(format:" · X %.0f%% · Y %.0f%%",layout.x,layout.y) }
+    override func pressesBegan(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event) }
+    override func pressesEnded(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { dismiss(animated:true); return }; super.pressesEnded(presses,with:event) }
+}
+
+
+// Pure adaptive policy: only network frame loss and RTT drive adjustments.
+struct TVAdaptiveSample {
+    let window: Double, time: Double, frames: Double, received: Double, dropped: Double, rtt: Double
+    var valid: Bool { [window,time,frames,received,dropped,rtt].allSatisfy { $0.isFinite && $0 >= 0 } && frames > 0 && received > 0 && dropped <= frames && received <= frames }
+}
+struct TVAdaptivePolicy {
+    var baseline: Double?; var lastWindow: Double?; var lastTime: Double?
+    var lossStreak = 0, delayStreak = 0, healthySince: Double?
+    var cooldownUntil = 0.0
+    mutating func invalidate() { lossStreak=0; delayStreak=0; healthySince=nil }
+    mutating func evaluate(_ sample: TVAdaptiveSample?, target: Int, lower: Int, upper: Int) -> (Int,String)? {
+        guard let s = sample, s.valid else { invalidate(); return nil }
+        if let lastWindow, s.window <= lastWindow {
+            if s.window < lastWindow { self.lastWindow=s.window; baseline=nil; invalidate() }
+            return nil
+        }
+        if let lastTime, s.time-lastTime > 2.5 || s.time <= lastTime { invalidate() }
+        lastWindow=s.window; lastTime=s.time
+        guard s.time >= cooldownUntil else { invalidate(); return nil }
+        let loss=s.dropped/s.frames
+        if baseline == nil { baseline=s.rtt }
+        let base=baseline ?? s.rtt
+        let highRTT=s.rtt > base+20 && s.rtt > base*1.5
+        lossStreak=loss > 0.01 ? lossStreak+1 : 0
+        delayStreak=highRTT ? delayStreak+1 : 0
+        if lossStreak >= 2 || delayStreak >= 3 {
+            let reason = lossStreak >= 2 ? "Network frame loss" : "Network latency increased"
+            let next=max(lower,min(upper,Int(Double(target)*0.8)))
+            invalidate(); if next == target { return nil }; cooldownUntil=s.time+5
+            return (next,reason)
+        }
+        let healthy=loss < 0.001 && s.rtt <= base*1.2+5
+        if healthy {
+            baseline=base*0.95+s.rtt*0.05
+            if healthySince == nil { healthySince=s.time }
+            if s.time-(healthySince ?? s.time) >= 15 {
+                let next=max(lower,min(upper,Int(Double(target)*1.05)))
+                invalidate(); if next == target { return nil }; cooldownUntil=s.time+5
+                return (next,"Network stable")
+            }
+        } else { healthySince=nil }
+        return nil
+    }
+}
+// End pure adaptive policy.
+final class TVAdaptiveController {
+    unowned let session: SeleneTVSession
+    private var timer: Timer?
+    private var policy = TVAdaptivePolicy()
+    private var failures=0
+    private(set) var active=false, paused=false, unsupported=false
+    private(set) var reason=""
+    private let defaults=UserDefaults.standard
+    init(session:SeleneTVSession) { self.session=session }
+    var enabled: Bool { get { defaults.bool(forKey:"Selene.abr.enabled") } set { defaults.set(newValue,forKey:"Selene.abr.enabled"); newValue ? start() : stop(); session.menuChanged?() } }
+    var upper: Int { get {
+        let manual=DataManager().getSettings()?.bitrate.intValue ?? 150000
+        return min(800000,max(500,defaults.object(forKey:"Selene.abr.upper") == nil ? manual : defaults.integer(forKey:"Selene.abr.upper")))
+    } set { defaults.set(min(800000,max(500,newValue)),forKey:"Selene.abr.upper"); if lower > upper { lower=upper }; restartBounds() } }
+    var lower: Int { get { min(upper,max(500,defaults.object(forKey:"Selene.abr.lower") == nil ? upper/4 : defaults.integer(forKey:"Selene.abr.lower"))) } set { defaults.set(min(upper,max(500,newValue)),forKey:"Selene.abr.lower"); restartBounds() } }
+    var statusText: String {
+        let state = unsupported ? "Host does not support bitrate adjustment" : paused ? "Automatic control paused" : active ? "Automatic control active" : "Automatic control off"
+        return state.localized + (reason.isEmpty ? "" : " · " + reason.localized)
+    }
+    func stop() { timer?.invalidate(); timer=nil; active=false; policy=TVAdaptivePolicy() }
+    func manualOverride() { defaults.set(false,forKey:"Selene.abr.enabled"); stop(); reason="Manual override"; session.menuChanged?() }
+    private func restartBounds() { policy=TVAdaptivePolicy(); if active { sample() } }
+    func start() {
+        stop(); paused=false; unsupported=false; reason=""; failures=0
+        guard enabled, session.stream != nil else { return }
+        active=true
+        timer=Timer.scheduledTimer(withTimeInterval:1,repeats:true) { [weak self] _ in self?.sample() }
+    }
+    func sample() {
+        guard active, !session.pending, let stream=session.stream else { return }
+        let values=stream.tvStreamMeasurements() as? [String:Any] ?? [:]
+        func number(_ key:String)->Double? { (values[key] as? NSNumber)?.doubleValue }
+        let sample:TVAdaptiveSample?
+        if let window=number("windowEnd"),let frames=number("frames"),let received=number("receivedFrames"),let dropped=number("networkDroppedFrames"),let rtt=number("rttMS") {
+            sample=TVAdaptiveSample(window:window,time:CACurrentMediaTime(),frames:frames,received:received,dropped:dropped,rtt:rtt)
+        } else { sample=nil }
+        let fresh = sample.map { policy.lastWindow == nil || $0.window > policy.lastWindow! } ?? false
+        var decision=policy.evaluate(sample,target:session.targetKbps,lower:lower,upper:upper)
+        // Apply explicit bounds only with a valid fresh measurement; no video means no mutation.
+        if decision == nil, fresh, let sample, sample.valid, (session.targetKbps < lower || session.targetKbps > upper), sample.time >= policy.cooldownUntil {
+            decision=(min(upper,max(lower,session.targetKbps)),"Configured bounds"); policy.cooldownUntil=sample.time+5
+        }
+        guard let (target,cause)=decision else { return }
+        let token=session.generation
+        session.request(target,saveManual:false) { [weak self] success,_,status in
+            guard let self, self.session.generation == token, self.active else { return }
+            if success { self.failures=0; self.reason=cause }
+            else if [403,404,405,501].contains(status) { self.stop(); self.unsupported=true; self.reason="" }
+            else { self.failures += 1; if self.failures >= 3 { self.stop(); self.paused=true; self.reason="Repeated adjustment failures" } }
+            self.session.menuChanged?()
+        }
+    }
+}
+final class TVAdaptiveSettingsController: UIViewController {
+    private let adaptive=SeleneTVSession.shared.adaptive
+    private let values=tvStreamLabel("",size:25)
+    override func viewDidLoad() {
+        super.viewDidLoad(); view.backgroundColor=UIColor(white:0.035,alpha:1)
+        let stack=UIStackView(); stack.axis = .vertical; stack.spacing=24
+        stack.addArrangedSubview(tvStreamLabel("Adaptive bitrate".localized,size:38)); stack.addArrangedSubview(values)
+        stack.addArrangedSubview(tvStreamLabel("Automatic targets affect this session only. Manual adjustment turns automatic control off.".localized))
+        stack.addArrangedSubview(TVStreamButton("Enable / Resume".localized){ [weak self] in self?.adaptive.enabled=true; self?.refresh() })
+        stack.addArrangedSubview(TVStreamButton("Off".localized){ [weak self] in self?.adaptive.enabled=false; self?.refresh() })
+        for upper in [false,true] { stack.addArrangedSubview(TVStreamButton((upper ? "Maximum bitrate" : "Minimum bitrate").localized){ [weak self] in
+            guard let self else { return }; TVStreamEditors.presentBitrate(on:self,kbps:upper ? self.adaptive.upper : self.adaptive.lower) { [weak self] value in guard let self else { return }; if upper { self.adaptive.upper=value } else { self.adaptive.lower=value }; self.refresh() }
+        }) }
+        stack.addArrangedSubview(TVStreamButton("Done".localized){ [weak self] in self?.dismiss(animated:true) })
+        stack.translatesAutoresizingMaskIntoConstraints=false; view.addSubview(stack)
+        NSLayoutConstraint.activate([stack.widthAnchor.constraint(equalTo:view.widthAnchor,multiplier:0.7),stack.centerXAnchor.constraint(equalTo:view.centerXAnchor),stack.centerYAnchor.constraint(equalTo:view.centerYAnchor)])
+        refresh()
+    }
+    override func viewDidAppear(_ animated:Bool) { super.viewDidAppear(animated); refresh() }
+    private func refresh() { values.text=adaptive.statusText + String(format:"\n%.1f – %.1f Mbps",Double(adaptive.lower)/1000,Double(adaptive.upper)/1000) }
     override func pressesBegan(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event) }
     override func pressesEnded(_ presses:Set<UIPress>,with event:UIPressesEvent?) { if presses.contains(where:{$0.type == .menu}) { dismiss(animated:true); return }; super.pressesEnded(presses,with:event) }
 }

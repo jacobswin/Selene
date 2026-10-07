@@ -1932,6 +1932,7 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 }
 
 - (void)mouseDidMoveWithIdentifier:(NSUUID * _Nonnull)identifier deltaX:(int16_t)deltaX deltaY:(int16_t)deltaY {
+    if ([KeyboardSupport forwardingSuspended]) return;
     accumulatedMouseDeltaX += deltaX / X1_MOUSE_SPEED_DIVISOR;
     accumulatedMouseDeltaY += deltaY / X1_MOUSE_SPEED_DIVISOR;
     
@@ -1962,10 +1963,12 @@ static NSString * const KeyboardInputSentinel = @"\u200B";
 }
 
 - (void)mouseDownWithIdentifier:(NSUUID * _Nonnull)identifier button:(enum X1MouseButton)button {
+    if ([KeyboardSupport forwardingSuspended]) return;
     LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, [self buttonFromX1ButtonCode:button]);
 }
 
 - (void)mouseUpWithIdentifier:(NSUUID * _Nonnull)identifier button:(enum X1MouseButton)button {
+    if ([KeyboardSupport forwardingSuspended]) return;
     LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, [self buttonFromX1ButtonCode:button]);
 }
 
