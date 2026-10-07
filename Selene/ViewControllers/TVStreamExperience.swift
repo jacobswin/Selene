@@ -1,6 +1,8 @@
 #if os(tvOS)
 import UIKit
 import Foundation
+import AVFoundation
+import VideoToolbox
 
 /// One owner for a stream's acknowledged bitrate and serialized host mutations.
 @objcMembers final class SeleneTVSession: NSObject {
@@ -153,6 +155,10 @@ final class TVStreamMenuController: UIViewController {
             guard let self else { return }; self.session.returningFromSettings = true
             self.dismiss(animated: true) { self.session.stream?.tvPresentSettings() }
         }
+        add("capabilities", "Capability report") { [weak self] in
+            guard let self else { return }; self.session.nextFocus = "capabilities"
+            self.present(UINavigationController(rootViewController: TVStreamCapabilityController()), animated: true)
+        }
         add("keys", "Keyboard shortcuts") { [weak self] in self?.chooseKeys() }
         add("disconnect", "Disconnect stream") { [weak self] in self?.disconnect(closeApp: false) }
         add("quit", "Disconnect and close app") { [weak self] in self?.confirmQuit() }
@@ -296,4 +302,94 @@ final class TVStreamTextInputController: UIViewController {
         if presses.contains(where: { $0.type == .menu }) { dismiss(animated: true); return }; super.pressesEnded(presses, with: event)
     }
 }
+struct TVCapabilityValue {
+    static func numeric(_ value: Double?, format: String, active: Bool, unknown: String, notStarted: String) -> String {
+        guard let value, value.isFinite, value >= 0 else { return active ? unknown : notStarted }
+        return String(format: format, value)
+    }
+}
+
+/// A snapshot preserves unknown values; device capability never substitutes for a stream result.
+struct TVStreamCapabilitySnapshot {
+    let sections: [(String, [(String, String)])]
+    static func capture() -> TVStreamCapabilitySnapshot {
+        let unknown = "Unknown".localized
+        let notStarted = "Stream not started".localized
+        let settings = DataManager().getSettings()
+        let session = SeleneTVSession.shared
+        let values = session.stream?.tvStreamMeasurements() as? [String: Any] ?? [:]
+        func observed(_ key: String, format: String) -> String {
+            TVCapabilityValue.numeric((values[key] as? NSNumber)?.doubleValue, format: format, active: session.stream != nil, unknown: unknown, notStarted: notStarted)
+        }
+        let mode = UIScreen.main.currentMode?.size
+        let codecs = [("H.264", kCMVideoCodecType_H264), ("HEVC", kCMVideoCodecType_HEVC), ("AV1", kCMVideoCodecType_AV1)]
+        let hardware = codecs.map { "\($0.0): " + (VTIsHardwareDecodeSupported($0.1) ? "Supported".localized : "Unavailable".localized) }.joined(separator: " · ")
+        let display = mode.map { "\(Int($0.width)) × \(Int($0.height))" } ?? unknown
+        let acceleration = (values["hardwareAcceleration"] as? NSNumber).map { $0.boolValue ? "Yes".localized : "No".localized } ?? (session.stream == nil ? notStarted : unknown)
+        let hdr = (values["hdr"] as? NSNumber).map { $0.boolValue ? "HDR10" : "SDR" } ?? (session.stream == nil ? notStarted : unknown)
+        let size: String
+        if let w = values["width"] as? NSNumber, let h = values["height"] as? NSNumber { size = "\(w.intValue) × \(h.intValue)" }
+        else { size = session.stream == nil ? notStarted : unknown }
+        let requestedWidth = session.stream.map { Int($0.streamConfig.width) } ?? settings?.width.intValue ?? 0
+        let requestedHeight = session.stream.map { Int($0.streamConfig.height) } ?? settings?.height.intValue ?? 0
+        let codec = [0:"Automatic",1:"H.264",2:"HEVC",3:"AV1"][Int(settings?.preferredCodec ?? 0)] ?? unknown
+        let audio = AVAudioSession.sharedInstance()
+        return TVStreamCapabilitySnapshot(sections: [
+            ("Device capabilities".localized, [
+                ("Display mode".localized, display),
+                ("Maximum display refresh rate".localized, "\(UIScreen.main.maximumFramesPerSecond) Hz"),
+                ("Current display HDR format".localized, unknown),
+                ("Hardware decoder support".localized, hardware),
+                ("HDR output capability".localized, Utils.hdrSupported() ? "Supported".localized : "Unavailable".localized),
+                ("Audio session output channels".localized, audio.outputNumberOfChannels > 0 ? "\(audio.outputNumberOfChannels)" : unknown),
+                ("Dolby Vision / Atmos".localized, "Not supported by this stream path".localized)]),
+            ("Requested settings".localized, [
+                ("Resolution".localized, "\(requestedWidth) × \(requestedHeight)"),
+                ("Frame Rate".localized, "\(session.stream.map { Int($0.streamConfig.frameRate) } ?? settings?.framerate.intValue ?? 0) FPS"),
+                ("Preferred Codec".localized, codec),
+                ("HDR".localized, (settings?.enableHdr ?? false) ? "On".localized : "Off".localized),
+                ("Manual bitrate".localized, String(format: "%.1f Mbps", Double(settings?.bitrate.intValue ?? 0)/1000))]),
+            ("Negotiated stream".localized, [
+                ("Resolution".localized, size),
+                ("Negotiated codec".localized, values["codec"] as? String ?? (session.stream == nil ? notStarted : unknown)),
+                ("Decoder".localized, session.stream == nil ? notStarted : values["decoder"] as? String ?? unknown),
+                ("Hardware acceleration in use".localized, acceleration),
+                ("HDR".localized, hdr),
+                ("Received frame rate".localized, observed("receivedFPS", format:"%.2f FPS")),
+                ("Decode time".localized, observed("decodeMS", format:"%.2f ms")),
+                ("Negotiated audio channels".localized, observed("audioChannels", format:"%.0f")),
+                ("Received bitrate".localized, observed("receivedMbps", format:"%.1f Mbps"))])])
+    }
+}
+
+final class TVStreamCapabilityController: UITableViewController {
+    private var snapshot = TVStreamCapabilitySnapshot.capture()
+    override func viewDidLoad() {
+        super.viewDidLoad(); title = "Capability report".localized
+        tableView.backgroundColor = UIColor(white: 0.04, alpha: 1)
+        tableView.rowHeight = 95
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done".localized, style: .done, target:self, action:#selector(close))
+    }
+    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); snapshot = .capture(); tableView.reloadData() }
+    override func numberOfSections(in tableView: UITableView) -> Int { snapshot.sections.count }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { snapshot.sections[section].1.count }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { snapshot.sections[section].0 }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style:.subtitle, reuseIdentifier:nil)
+        let row = snapshot.sections[indexPath.section].1[indexPath.row]
+        cell.textLabel?.text = row.0; cell.detailTextLabel?.text = row.1
+        cell.detailTextLabel?.numberOfLines = 2
+        cell.textLabel?.font = .systemFont(ofSize:25); cell.detailTextLabel?.font = .systemFont(ofSize:21)
+        cell.backgroundColor = UIColor(white:0.1, alpha:1); cell.textLabel?.textColor = .white; cell.detailTextLabel?.textColor = .lightGray
+        return cell
+    }
+    @objc private func close() { navigationController?.dismiss(animated:true) }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { close(); return }; super.pressesEnded(presses,with:event)
+    }
+}
+
 #endif

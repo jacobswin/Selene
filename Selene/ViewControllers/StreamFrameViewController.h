@@ -75,6 +75,7 @@
 - (void)tvDisconnectCloseApp:(BOOL)closeApp;
 - (void)tvSetStats:(NSInteger)level;
 - (double)tvReceivedMbps;
+- (NSDictionary *)tvStreamMeasurements;
 #endif
 - (void)bringUpToolboxMenu;
 - (void)bringUpToolboxMenuWithoutWidgetLayoutTool;

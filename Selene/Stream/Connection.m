@@ -10,6 +10,7 @@
 //
 
 #import "Connection.h"
+#include <stdatomic.h>
 #import "Plot.h"
 #import "Utils.h"
 #import "DataManager.h"
@@ -46,6 +47,7 @@ static NSLock* videoStatsLock;
 static uint64_t lastRenderedInterpolatedFrameCount;
 
 static SDL_AudioDeviceID audioDevice;
+static atomic_int seleneAudioChannels;
 static OPUS_MULTISTREAM_CONFIGURATION audioConfig;
 static void* audioBuffer;
 static float volume = 1.0;
@@ -92,6 +94,28 @@ void DrCleanup(void)
 -(BandwidthTracker *) getBwTracker
 {
     return bwTracker;
+}
+
+- (NSDictionary *)streamMeasurements {
+    video_stats_t stats = {0};
+    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    if ([self getVideoStats:&stats] && stats.endTime > stats.startTime && stats.totalFrames > 0) {
+        result[@"windowEnd"] = @(stats.endTime);
+        result[@"frames"] = @(stats.totalFrames);
+        result[@"receivedFrames"] = @(stats.receivedFrames);
+        result[@"networkDroppedFrames"] = @(stats.networkDroppedFrames);
+        result[@"receivedFPS"] = @(stats.receivedFrames / (stats.endTime - stats.startTime));
+        result[@"decodeMS"] = @(stats.decodeMetrics.avg);
+        result[@"renderDroppedFrames"] = @(stats.frameDropMetrics.total);
+        result[@"receivedMbps"] = @([self getBwTracker].averageMbps);
+    }
+    uint32_t rtt, variance;
+    if (LiGetEstimatedRttInfo(&rtt, &variance)) result[@"rttMS"] = @(rtt);
+    NSString *codec = [self getActiveCodecName];
+    if (codec) result[@"codec"] = codec;
+    int channels = atomic_load(&seleneAudioChannels);
+    if (channels > 0) result[@"audioChannels"] = @(channels);
+    return result;
 }
 
 -(BOOL) getVideoStats:(video_stats_t*)stats
@@ -276,6 +300,7 @@ int ArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, v
     }
     
     audioConfig = *opusConfig;
+    atomic_store(&seleneAudioChannels, opusConfig->channelCount);
     audioFrameSize = opusConfig->samplesPerFrame * sizeof(float) * opusConfig->channelCount;
     audioBuffer = SDL_malloc(audioFrameSize);
     if (audioBuffer == NULL) {
@@ -325,6 +350,7 @@ int ArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, v
 
 void ArCleanup(void)
 {
+    atomic_store(&seleneAudioChannels, 0);
     if (opusDecoder != NULL) {
         opus_multistream_decoder_destroy(opusDecoder);
         opusDecoder = NULL;

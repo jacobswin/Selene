@@ -8209,7 +8209,7 @@ private final class TVNativeSettingsTableController: UITableViewController {
     }
     override func numberOfSections(in tableView: UITableView) -> Int { showsCapabilities ? 1 : groups.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        showsCapabilities ? 3 : groups[section].1.count + (selectedSection == .others ? 1 : 0)
+        showsCapabilities ? 4 : groups[section].1.count + (selectedSection == .others ? 1 : 0)
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         showsCapabilities ? "Device capabilities".localized : groups[section].0
@@ -8232,11 +8232,15 @@ private final class TVNativeSettingsTableController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = TVModernSettingsCell()
         if showsCapabilities {
+            if indexPath.row == 0 {
+                cell.setContent(title: "Capability report".localized, value: "Requested settings and negotiated results".localized, enabled: true)
+                return cell
+            }
             let titles = ["Decoder capabilities".localized, "HDR10", "Audio output".localized]
             let values = ["HEVC / AV1 hardware decoding".localized,
                 Utils.hdrSupported() ? "Supported".localized : "Unavailable on the current output".localized,
                 "Stereo / 5.1 / 7.1".localized]
-            cell.setContent(title: titles[indexPath.row], value: values[indexPath.row], enabled: true)
+            cell.setContent(title: titles[indexPath.row - 1], value: values[indexPath.row - 1], enabled: true)
             cell.accessoryType = .none
             return cell
         }
@@ -8261,10 +8265,14 @@ private final class TVNativeSettingsTableController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if showsCapabilities {
+            if indexPath.row == 0 {
+                present(UINavigationController(rootViewController: TVStreamCapabilityController()), animated: true)
+                return
+            }
             let messages = [store.tvCodecCapabilityText + " " + "AV1 uses hardware decoding only.".localized + (store.codecFallbackNotice ?? ""),
                 "HDR10 requires 10-bit HDR content from the host and a compatible display and output configuration.".localized,
                 "Available: stereo, 5.1 and 7.1. The host has no separate 2.1 or 5.1.2 configuration; 7.1.4 requires 12-channel client support. A receiver can send stereo bass to a subwoofer, but this is not a separate LFE stream.".localized]
-            store.showTVStreamingMessage("Streaming capabilities".localized, messages[indexPath.row]); return
+            store.showTVStreamingMessage("Streaming capabilities".localized, messages[indexPath.row - 1]); return
         }
         if selectedSection == .others && indexPath.row == 0 {
             let alert = UIAlertController(title: "Language".localized, message: nil, preferredStyle: .actionSheet)

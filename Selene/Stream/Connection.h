@@ -29,6 +29,7 @@
 -(BandwidthTracker *) getBwTracker;
 -(BOOL) getVideoStats:(video_stats_t*)stats;
 -(NSString*) getActiveCodecName;
+- (NSDictionary *)streamMeasurements;
 
 + (void)setVolume:(float)newVolume;
 + (void)resetSysAudioPlayback;

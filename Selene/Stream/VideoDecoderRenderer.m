@@ -364,6 +364,9 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
 - (void)setupWithVideoFormat:(int)videoFormat width:(int)videoWidth height:(int)videoHeight frameRate:(int)frameRate fullRange:(BOOL)fullRange request10BitCodec:(BOOL)request10BitCodec
 {
     self->_videoFormat = videoFormat;
+    self.negotiatedSize = CGSizeMake(videoWidth, videoHeight);
+    self.hardwareAcceleration = nil;
+    self.negotiatedHDR = nil;
     self->_frameRate = frameRate;
     self->_fullRange = fullRange;
     self->_request10BitCodec = request10BitCodec;
@@ -442,6 +445,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
         OSStatus query = VTSessionCopyProperty(_decompressionSession,
             kVTDecompressionPropertyKey_UsingHardwareAcceleratedVideoDecoder, kCFAllocatorDefault, &hardware);
         Log(LOG_I, @"Decoder hardware acceleration: %@ (query status %d)", hardware ? (__bridge id)hardware : @"unavailable", query);
+        self.hardwareAcceleration = query == noErr && hardware ? @([(__bridge NSNumber *)hardware boolValue]) : nil;
         if (hardware) CFRelease(hardware);
     }
     return status;
@@ -1490,6 +1494,7 @@ int DrSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
 }
 
 - (void)setHdrMode:(BOOL)enabled {
+    self.negotiatedHDR = @(enabled);
     SS_HDR_METADATA hdrMetadata;
 
     BOOL hasMetadata = enabled && LiGetHdrMetadata(&hdrMetadata);

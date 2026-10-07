@@ -20,6 +20,7 @@
 
 - (void) stopStream;
 - (double)receivedMbps;
+- (NSDictionary *)streamMeasurements;
 - (void) setNeedRequeuing:(bool)needRequeuing;
 
 - (NSString*) getStatsOverlayText: (uint16_t) overlayLevel;

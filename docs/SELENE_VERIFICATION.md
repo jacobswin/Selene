@@ -72,3 +72,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 
 - Added Alt+Tab, Windows, Esc, Enter, special keys and an explicit native text editor. Text cancel does not send Enter. Shortcuts use balanced key-down/up sequences and reverse modifier release; session teardown releases pending keys and stale completion cannot resume a new session.
 - tvOS Debug build passed. Production key-sender tests passed for Alt+Tab order, ordinary-input suspension, explicit bypass, and cancellation cleanup. Physical PC text entry and shortcut effects remain pending.
+
+### Stage 3: capability snapshot
+
+- Shared read-only device, requested and negotiated sections in settings and the stream menu. Actual decoder format, VideoToolbox hardware-use result, dimensions, frame rate, decode time and negotiated audio channels come from session data.
+- Current display HDR format remains unknown where tvOS provides no reliable observation. Audio-session channel count does not certify receiver output. Dolby Vision, Atmos and height channels remain unsupported.
+- Unsigned tvOS Debug build and missing/invalid numeric snapshot tests passed. HDR output and audio receiver verification remain pending on Apple TV.

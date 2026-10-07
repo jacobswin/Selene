@@ -35,7 +35,7 @@ Checked items are implemented; physical streaming validation is tracked separate
 - [x] Add menu shortcuts for Alt+Tab, Windows, special keys, and explicit tvOS text input; release all pressed keys when dismissed or disconnected.
 - [ ] Investigate in-session resolution and HDR changes with Foundation Sunshine; expose only negotiated support, otherwise clearly require reconnecting.
 - [ ] Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
-- [ ] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
+- [x] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
 - [ ] Add client-side adaptive bitrate with explicit bounds, packet-loss/latency feedback, manual override, and host capability checks.
 - [ ] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
 - [ ] Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.

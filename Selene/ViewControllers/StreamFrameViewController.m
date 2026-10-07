@@ -824,6 +824,18 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     [self tvSetInputPaused:NO];
     if (closeApp) [self disconnectAndQuitApp]; else [self returnToMainFrame];
 }
+- (NSDictionary *)tvStreamMeasurements {
+    NSMutableDictionary *values = [[_streamMan streamMeasurements] mutableCopy] ?: [NSMutableDictionary dictionary];
+    VideoDecoderRenderer *renderer = _streamMan.videoRenderer;
+    if (renderer.negotiatedSize.width > 0) {
+        values[@"width"] = @(renderer.negotiatedSize.width);
+        values[@"height"] = @(renderer.negotiatedSize.height);
+    }
+    if (renderer.hardwareAcceleration) values[@"hardwareAcceleration"] = renderer.hardwareAcceleration;
+    if (renderer.negotiatedHDR) values[@"hdr"] = renderer.negotiatedHDR;
+    values[@"decoder"] = _settings.renderingBackend.intValue == RENDER_METAL ? @"VideoToolbox" : @"AVSampleBufferDisplayLayer";
+    return values;
+}
 - (double)tvReceivedMbps { return [_streamMan receivedMbps]; }
 - (void)tvSetStats:(NSInteger)level {
     _settings.statsOverlayEnabled = level != 0;
@@ -1859,6 +1871,13 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         [conTermAlert addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Ok"] style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){
             [self returnToMainFrame];
         }]];
+#if TARGET_OS_TV
+        [[SeleneTVSession shared] end];
+        [self tvSetInputPaused:NO];
+        if (self.presentedViewController) {
+            [self dismissViewControllerAnimated:NO completion:^{ [self presentViewController:conTermAlert animated:YES completion:nil]; }];
+        } else
+#endif
         [self presentViewController:conTermAlert animated:YES completion:nil];
     });
 
@@ -1947,6 +1966,13 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         [alert addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Ok"] style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){
             [self returnToMainFrame];
         }]];
+#if TARGET_OS_TV
+        [[SeleneTVSession shared] end];
+        [self tvSetInputPaused:NO];
+        if (self.presentedViewController) {
+            [self dismissViewControllerAnimated:NO completion:^{ [self presentViewController:alert animated:YES completion:nil]; }];
+        } else
+#endif
         [self presentViewController:alert animated:YES completion:nil];
     });
     
@@ -1968,6 +1994,13 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         [alert addAction:[UIAlertAction actionWithTitle:[LocalizationHelper localizedStringForKey:@"Ok"] style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){
             [self returnToMainFrame];
         }]];
+#if TARGET_OS_TV
+        [[SeleneTVSession shared] end];
+        [self tvSetInputPaused:NO];
+        if (self.presentedViewController) {
+            [self dismissViewControllerAnimated:NO completion:^{ [self presentViewController:alert animated:YES completion:nil]; }];
+        } else
+#endif
         [self presentViewController:alert animated:YES completion:nil];
     });
 }

@@ -163,6 +163,8 @@
     return TRUE;
 }
 
+- (NSDictionary *)streamMeasurements { return [_connection streamMeasurements] ?: @{}; }
+
 - (double)receivedMbps { return [_connection getBwTracker].averageMbps; }
 
 - (NSString*) getStatsOverlayText: (uint16_t) overlayLevel {

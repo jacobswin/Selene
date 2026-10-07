@@ -17,6 +17,9 @@
 @interface VideoDecoderRenderer : NSObject
 
 @property (atomic, readonly) PlotMetrics decodeMetrics;
+@property (atomic, strong) NSNumber *hardwareAcceleration;
+@property (atomic, strong) NSNumber *negotiatedHDR;
+@property (atomic, assign) CGSize negotiatedSize;
 @property (atomic, readonly) PlotMetrics frameQueueMetrics;
 @property (atomic, assign) bool needRequeuing;
 @property (nonatomic, strong) FrameQueue* frameQueue;
