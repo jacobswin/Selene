@@ -43,7 +43,7 @@ This checklist tracks feature implementation and bug fixes. Cleanup and feature 
 - 🟢 Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
 - 🟢 Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
 - 🔴 Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
-- 🔴 Add controller shortcut testing, dead-zone/center calibration and mouse-mode controls where GameController permits.
+- 🟢 Add controller shortcut testing, independent stick dead zones and mouse-mode controls where GameController permits.
 - 🟢 Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.
 - 🔴 Define foreground/background reconnect behavior within tvOS lifecycle limits; never promise continuous background video decoding.
 - 🔴 Add versioned settings backup/restore through a tvOS-compatible transfer flow; exclude pairing secrets and do not copy Android folder access.

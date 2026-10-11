@@ -17,12 +17,23 @@
 #import "DataManager.h"
 #import "KeyboardSupport.h"
 #include "Limelight.h"
+#include <math.h>
 
 @import GameController;
 #if !TARGET_OS_TV
     @import CoreMotion;
 #endif
 @import AudioToolbox;
+
+// Radial deadzone preserves angle and maps the remaining magnitude to full range.
+static void SeleneTVRadialDeadzone(float *x, float *y, float percent) {
+    if (percent <= 0) return;
+    float deadzone = fminf(0.3f, fmaxf(0, percent / 100.0f));
+    float magnitude = hypotf(*x, *y);
+    if (!isfinite(magnitude) || magnitude <= deadzone) { *x = 0; *y = 0; return; }
+    float scale = (fminf(1, magnitude) - deadzone) / ((1 - deadzone) * magnitude);
+    *x *= scale; *y *= scale;
+}
 
 static const double MOUSE_SPEED_DIVISOR = 1.25;
 static __weak ControllerSupport *VLSharedControllerSupport = nil;
@@ -36,6 +47,12 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
 
 @implementation ControllerSupport {
     BOOL _forwardingSuspended;
+#if TARGET_OS_TV
+    BOOL _tvMouseMode;
+    NSTimer *_tvMouseTimer;
+    BOOL _tvMouseA, _tvMouseB;
+    float _tvMouseX, _tvMouseY;
+#endif
     id _controllerConnectObserver;
     id _controllerDisconnectObserver;
     id _mouseConnectObserver;
@@ -892,6 +909,14 @@ static __weak ControllerSupport *VLSharedControllerSupport = nil;
                 rightStickY = MAX_MAGNITUDE(rightStickY, controller.mergedWithController.lastRightStickY);
             }
             
+#if TARGET_OS_TV
+            float lx = leftStickX / 32767.0f, ly = leftStickY / 32767.0f;
+            float rx = rightStickX / 32767.0f, ry = rightStickY / 32767.0f;
+            SeleneTVRadialDeadzone(&lx, &ly, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.leftDeadzone"]);
+            SeleneTVRadialDeadzone(&rx, &ry, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.rightDeadzone"]);
+            leftStickX = lrintf(lx * 32767); leftStickY = lrintf(ly * 32767);
+            rightStickX = lrintf(rx * 32767); rightStickY = lrintf(ry * 32767);
+#endif
             //NSLog(@"gamepadMask: %@", [self binaryRepresentationOfInteger:buttonFlags]); // we got the pressed OSC buttons here.
             
             // Player 0 is always present for OSC
@@ -1369,6 +1394,9 @@ double rc_expo(double x, double expo) {
     
     [ControllerUtil listenWithController:controller swapABXY:self->_swapABXYButtons handler:^(NSDictionary * elementDict, GCExtendedGamepad * gamepad, GCControllerElement * element) {
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
+#if TARGET_OS_TV
+            if (self.forwardingSuspended || (self.tvMouseMode && controller == [self tvMouseController])) return;
+#endif
             SeleneController* voidController = [self->_voidControllers objectForKey:[NSNumber numberWithInteger:gamepad.controller.playerIndex]];
             short leftStickX, leftStickY;
             short rightStickX, rightStickY;
@@ -2049,6 +2077,9 @@ double rc_expo(double x, double expo) {
     
     _controllerDisconnectObserver = [[NSNotificationCenter defaultCenter] addObserverForName:GCControllerDidDisconnectNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         Log(LOG_I, @"Controller disconnected!");
+#if TARGET_OS_TV
+        [self setTvMouseMode:NO];
+#endif
         
         GCController* controller = note.object;
         
@@ -2277,6 +2308,9 @@ double rc_expo(double x, double expo) {
 
 -(void) cleanup
 {
+#if TARGET_OS_TV
+    [self setTvMouseMode:NO];
+#endif
     [ControllerUtil stopAllDualSenseHaptics];
 #if !TARGET_OS_TV
     [_gameSirG8MFiRumbler invalidate];
@@ -2342,7 +2376,9 @@ double rc_expo(double x, double expo) {
 - (void)setForwardingSuspended:(BOOL)suspended {
     @synchronized(self) { _forwardingSuspended = suspended; }
     [_controllerStreamLock lock];
-    for (SeleneController *controller in _voidControllers.allValues) {
+    NSMutableArray *releaseControllers = [_voidControllers.allValues mutableCopy];
+    if (_oscController) [releaseControllers addObject:_oscController];
+    for (SeleneController *controller in releaseControllers) {
         controller.lastButtonFlags = 0;
         controller.lastLeftTrigger = controller.lastRightTrigger = 0;
         controller.lastLeftStickX = controller.lastLeftStickY = 0;
@@ -2350,8 +2386,49 @@ double rc_expo(double x, double expo) {
         LiSendMultiControllerEvent(_multiController ? controller.playerIndex : 0, [self getActiveGamepadMask], 0, 0, 0, 0, 0, 0, 0);
     }
     for (int button = BUTTON_LEFT; button <= BUTTON_X2; button++) LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, button);
+#if TARGET_OS_TV
+    _tvMouseA = _tvMouseB = NO; _tvMouseX = _tvMouseY = 0;
+#endif
     accumulatedDeltaX = accumulatedDeltaY = 0;
     [_controllerStreamLock unlock];
 }
+
+#if TARGET_OS_TV
+- (GCController *)tvMouseController {
+    for (GCController *controller in GCController.controllers) if (controller.extendedGamepad) return controller;
+    return nil;
+}
+- (BOOL)tvMouseMode { @synchronized(self) { return _tvMouseMode; } }
+- (void)setTvMouseMode:(BOOL)enabled {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self setTvMouseMode:enabled]; }); return;
+    }
+    enabled = enabled && [self tvMouseController] != nil;
+    [_tvMouseTimer invalidate]; _tvMouseTimer = nil;
+    [self setForwardingSuspended:self.forwardingSuspended];
+    @synchronized(self) { _tvMouseMode = enabled; }
+    if (!enabled) return;
+    __weak ControllerSupport *weakSelf = self;
+    _tvMouseTimer = [NSTimer scheduledTimerWithTimeInterval:1.0/60.0 repeats:YES block:^(NSTimer *timer) { [weakSelf tvMouseTick]; }];
+}
+- (void)tvMouseTick {
+    if (self.forwardingSuspended || !self.tvMouseMode) return;
+    GCExtendedGamepad *pad = [self tvMouseController].extendedGamepad;
+    if (!pad) { [self setTvMouseMode:NO]; return; }
+    float x = pad.rightThumbstick.xAxis.value, y = pad.rightThumbstick.yAxis.value;
+    SeleneTVRadialDeadzone(&x, &y, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.rightDeadzone"]);
+    _tvMouseX += x * 12; _tvMouseY -= y * 12;
+    short dx = (short)_tvMouseX, dy = (short)_tvMouseY;
+    if (dx || dy) { LiSendMouseMoveEvent(dx, dy); _tvMouseX -= dx; _tvMouseY -= dy; }
+    BOOL a = pad.buttonA.pressed, b = pad.buttonB.pressed;
+    if (a != _tvMouseA) LiSendMouseButtonEvent(a ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_LEFT);
+    if (b != _tvMouseB) LiSendMouseButtonEvent(b ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_RIGHT);
+    _tvMouseA = a; _tvMouseB = b;
+    float sx = pad.leftThumbstick.xAxis.value, sy = pad.leftThumbstick.yAxis.value;
+    SeleneTVRadialDeadzone(&sx, &sy, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.leftDeadzone"]);
+    short scroll = (short)lrintf(sy * 20);
+    if (scroll) LiSendHighResScrollEvent(scroll);
+}
+#endif
 
 @end

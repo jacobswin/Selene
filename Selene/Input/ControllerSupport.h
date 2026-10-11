@@ -31,6 +31,9 @@
 -(id) initWithConfig:(StreamConfiguration*)streamConfig delegate:(id<ControllerSupportDelegate>)delegate;
 -(void) connectionEstablished;
 @property (atomic, assign) BOOL forwardingSuspended;
+#if TARGET_OS_TV
+@property (atomic, assign) BOOL tvMouseMode;
+#endif
 
 -(void) initAutoOnScreenControlMode:(OnScreenControls*)osc;
 -(void) cleanup;

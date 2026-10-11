@@ -3,6 +3,7 @@ import UIKit
 import Foundation
 import AVFoundation
 import VideoToolbox
+import GameController
 
 // Navigation, responder and gesture fallbacks may see the same physical press.
 struct TVBackGate {
@@ -27,6 +28,8 @@ struct TVBackGate {
         get { UserDefaults.standard.bool(forKey: "Selene.tv.lockOnDisconnect") }
         set { UserDefaults.standard.set(newValue, forKey: "Selene.tv.lockOnDisconnect") }
     }
+    static func deadzone(_ side: String) -> Int { min(30, max(0, UserDefaults.standard.integer(forKey: "Selene.tv." + side + "Deadzone"))) }
+    static func setDeadzone(_ side: String, value: Int) { UserDefaults.standard.set(min(30, max(0, value)), forKey: "Selene.tv." + side + "Deadzone") }
     static func shortcutVisible(_ id: String) -> Bool {
         (UserDefaults.standard.object(forKey: "Selene.tv.shortcut." + id) as? Bool) ?? true
     }
@@ -51,7 +54,20 @@ final class TVClientSettingsController: UITableViewController {
             (title, { TVClientPreferences.shortcutVisible(id) ? "On".localized : "Off".localized }, { TVClientPreferences.setShortcutVisible(id, visible: !TVClientPreferences.shortcutVisible(id)) })
         }
         let lock: Row = ("Lock PC on disconnect", { TVClientPreferences.lockOnDisconnect ? "On".localized : "Off".localized }, { TVClientPreferences.lockOnDisconnect.toggle() })
-        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock])]
+        let controller: [Row] = [
+            ("Controller test", { "Buttons and sticks".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVControllerTestController()), animated: true) }),
+            ("Left stick deadzone", { "\(TVClientPreferences.deadzone("left"))%" }, { [weak self] in self?.chooseDeadzone("left") }),
+            ("Right stick deadzone", { "\(TVClientPreferences.deadzone("right"))%" }, { [weak self] in self?.chooseDeadzone("right") })]
+        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock]), ("Controller", controller)]
+    }
+    private func chooseDeadzone(_ side: String) {
+        let alert = UIAlertController(title: (side == "left" ? "Left stick deadzone" : "Right stick deadzone").localized, message: "Select a radial deadzone. Zero preserves existing input behavior.".localized, preferredStyle: .actionSheet)
+        for value in 0...30 {
+            alert.addAction(UIAlertAction(title: "\(value)%" + (value == TVClientPreferences.deadzone(side) ? " ✓" : ""), style: .default) { [weak self] _ in
+                TVClientPreferences.setDeadzone(side, value: value); self?.tableView.reloadData()
+            })
+        }
+        alert.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel)); present(alert, animated: true)
     }
     override func numberOfSections(in tableView: UITableView) -> Int { groups.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { groups[section].1.count }
@@ -74,6 +90,60 @@ final class TVClientSettingsController: UITableViewController {
     }
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if presses.contains(where: { $0.type == .menu }) { close(); return }; super.pressesEnded(presses, with: event)
+    }
+}
+
+final class TVControllerTestController: UITableViewController {
+    private var timer: Timer?
+    private weak var support: ControllerSupport?
+    private var wasSuspended = true
+    private var keyboardWasSuspended = true
+    private var lines: [(String, String)] = []
+    override func viewDidLoad() {
+        super.viewDidLoad(); title = "Controller test".localized
+        support = ControllerSupport.sharedInstance(); wasSuspended = support?.forwardingSuspended ?? true
+        keyboardWasSuspended = KeyboardSupport.forwardingSuspended()
+        support?.forwardingSuspended = true; KeyboardSupport.setForwardingSuspended(true)
+        tableView.backgroundColor = UIColor(white: 0.04, alpha: 1); tableView.rowHeight = 125
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done".localized, style: .done, target: self, action: #selector(close))
+        sample()
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in self?.sample() }
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated); timer?.invalidate(); timer = nil
+        support?.forwardingSuspended = wasSuspended
+        KeyboardSupport.setForwardingSuspended(keyboardWasSuspended)
+    }
+    private func sample() {
+        if let pad = GCController.controllers().compactMap({ $0.extendedGamepad }).first {
+            let buttons: [(String, GCControllerButtonInput?)] = [("A",pad.buttonA),("B",pad.buttonB),("X",pad.buttonX),("Y",pad.buttonY),("L1",pad.leftShoulder),("R1",pad.rightShoulder),("L2",pad.leftTrigger),("R2",pad.rightTrigger),("Menu",pad.buttonMenu),("Options",pad.buttonOptions),("L3",pad.leftThumbstickButton),("R3",pad.rightThumbstickButton)]
+            let pressed = buttons.filter { $0.1?.isPressed == true }.map { $0.0 }.joined(separator: " + ")
+            lines = [("Controller", "Connected".localized), ("Left stick", String(format:"X %.3f · Y %.3f",pad.leftThumbstick.xAxis.value,pad.leftThumbstick.yAxis.value)), ("Right stick",String(format:"X %.3f · Y %.3f",pad.rightThumbstick.xAxis.value,pad.rightThumbstick.yAxis.value)), ("Pressed buttons",pressed.isEmpty ? "None".localized : pressed), ("D-pad",String(format:"X %.0f · Y %.0f",pad.dpad.xAxis.value,pad.dpad.yAxis.value))]
+        } else {
+            lines = [("Controller", "No compatible controller connected".localized), ("Left stick","Unavailable".localized), ("Right stick","Unavailable".localized), ("Pressed buttons","None".localized), ("D-pad","Unavailable".localized)]
+        }
+        for (index, line) in lines.enumerated() {
+            let cell = tableView.cellForRow(at: IndexPath(row:index, section:0))
+            cell?.textLabel?.text = line.0.localized; cell?.detailTextLabel?.text = line.1
+        }
+    }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { lines.count }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { "Test input stays on Apple TV and is not sent to your PC.".localized }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = TVCapabilityCell(style: .subtitle, reuseIdentifier: nil)
+        cell.backgroundColor = UIColor(white:0.09, alpha:1); cell.textLabel?.textColor = .white; cell.detailTextLabel?.textColor = .lightGray
+        cell.textLabel?.text = lines[indexPath.row].0.localized; cell.detailTextLabel?.text = lines[indexPath.row].1
+        return cell
+    }
+    @objc private func close() { dismiss(animated:true) }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { return }; super.pressesBegan(presses, with:event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { close(); return }; super.pressesEnded(presses, with:event)
     }
 }
 
@@ -262,6 +332,15 @@ final class TVStreamMenuController: UIViewController {
         right.addArrangedSubview(exact); bitrateButtons = [minus, plus, exact]
         right.addArrangedSubview(TVStreamButton("Picture layout".localized) { [weak self] in self?.present(TVStreamLayoutController(),animated:true) })
         right.addArrangedSubview(TVStreamButton("Adaptive bitrate".localized) { [weak self] in self?.present(TVAdaptiveSettingsController(), animated:true) })
+        let mouse = TVStreamButton("Controller mouse".localized) { [weak self] in
+            guard let self, let support = ControllerSupport.sharedInstance() else { return }
+            guard GCController.controllers().contains(where: { $0.extendedGamepad != nil }) else {
+                let alert = UIAlertController(title: "Controller mouse".localized, message: "Connect a controller with two sticks to use mouse mode.".localized, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK".localized, style: .cancel)); self.present(alert, animated: true); return
+            }
+            support.tvMouseMode.toggle(); self.resume()
+        }
+        buttons["mouse"] = mouse; right.addArrangedSubview(mouse)
         right.addArrangedSubview(status); right.addArrangedSubview(UIView())
         left.addArrangedSubview(UIView())
         session.menuChanged = { [weak self] in self?.refresh() }
@@ -281,6 +360,10 @@ final class TVStreamMenuController: UIViewController {
         let button = TVStreamButton(key.localized, action: action); buttons[id] = button; left.addArrangedSubview(button)
     }
     func refresh() {
+        let mouseAvailable = GCController.controllers().contains { $0.extendedGamepad != nil }
+        buttons["mouse"]?.setTitle("Controller mouse".localized + ": " + ((ControllerSupport.sharedInstance()?.tvMouseMode ?? false) ? "On".localized : "Off".localized), for: .normal)
+        buttons["mouse"]?.isEnabled = mouseAvailable && !disconnecting
+        buttons["mouse"]?.alpha = mouseAvailable ? 1 : 0.4
         bitrate.text = String(format: "%.1f Mbps", Double(session.targetKbps) / 1000)
         received.text = LocalizationHelper.localizedString(forKey: "Received bitrate: %.1f Mbps", session.stream?.tvReceivedMbps() ?? 0)
         status.text = (session.pending ? "Applying bitrate…".localized : session.lastMessage) + "\n" + session.adaptive.statusText

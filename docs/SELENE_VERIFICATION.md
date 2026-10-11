@@ -151,3 +151,10 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Added disabled-by-default lock-on-disconnect. Only an explicit ordinary disconnect sends Win+L before teardown; quit-app, background and unexpected disconnect do not invoke it.
 - Explicit shortcut sender now aggregates transport return codes and releases modifiers in reverse order. Menu reports sent/failed, never confirmed host lock, then disconnects. Generation checks ignore callbacks from an ended session.
 - Fake-transport tests passed for Win+L order, cancellation and failure propagation; preferences/localization tests and signed Apple TV Debug build passed. Actual Windows lock-screen acceptance remains pending.
+
+### 2026-10-11: stage 4 controller tools
+
+- Added a polling controller test page without replacing live input callbacks; host forwarding stays suspended during the test. Added independent 0–30% radial deadzones with 1% selections and default zero compatibility.
+- Added a session-only controller mouse toggle: right stick moves, A/B click, left stick scrolls. The selected controller does not also forward gamepad input; menu suspension, disconnect and cleanup release mouse/gamepad states. Unsupported controller input disables the menu entry.
+- Production radial mapping tests cover zero, boundaries, angle, full-range remapping and invalid values. Preferences/localization tests and signed Apple TV Debug build passed. Physical controller drift, mouse mapping, unplug and menu isolation remain unverified.
+- Implementation uses Apple's extended-gamepad profile input values: https://developer.apple.com/documentation/gamecontroller/gcextendedgamepad
