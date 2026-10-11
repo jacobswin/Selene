@@ -2,13 +2,13 @@
   "images": [
     {
       "idiom": "tv",
-      "filename": "selene.png",
-      "scale": "1x"
+      "scale": "1x",
+      "filename": "empty.png"
     },
     {
       "idiom": "tv",
-      "filename": "selene@2.png",
-      "scale": "2x"
+      "scale": "2x",
+      "filename": "empty@2.png"
     }
   ],
   "info": {
