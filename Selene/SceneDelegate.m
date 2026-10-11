@@ -10,6 +10,7 @@
 #endif
 #if TARGET_OS_TV
 #import "MainFrameViewController.h"
+#import "Selene-Swift.h"
 #import "SettingsViewController.h"
 #import "SWRevealViewController.h"
 #endif
@@ -317,6 +318,7 @@ static BOOL VLIsExternalDisplaySession(UISceneSession *session) {
 
 - (void)sceneDidBecomeActive:(UIScene *)scene {
 #if TARGET_OS_TV
+    if (scene == self.window.windowScene) [[TVLifecycle shared] foreground];
     if (scene == self.window.windowScene &&
         [self.window.rootViewController isKindOfClass:[SeleneControllerRootViewController class]]) {
         [self.window.rootViewController setNeedsFocusUpdate];

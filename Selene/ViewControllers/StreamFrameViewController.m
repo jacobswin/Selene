@@ -1715,6 +1715,10 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 
 // This fires when the home button is pressed
 - (void)applicationDidEnterBackground:(UIApplication *)application {
+#if TARGET_OS_TV
+    [[TVLifecycle shared] backgroundFrom:self];
+    return;
+#endif
     NSLog(@"did enter background, %d, %@, %d", _settings.enablePIP, self.pipController, self.pipController.isPictureInPictureActive);
     if (_settings.enablePIP && self.pipController && self.pipController.isPictureInPictureActive) {
         //Log(LOG_I, @"PIP is active, not terminating stream");

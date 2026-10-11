@@ -44,19 +44,29 @@ This checklist tracks feature implementation and bug fixes. Cleanup and feature 
 - 🟢 Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
 - 🟢 Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
 - 🟢 Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
-- 🔴 Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
+- 🟢 Explain frame pacing, client buffering and full color range, guard unsupported/live pacing changes, and confirm color-range edits; physical default validation remains pending.
 - 🟢 Add controller shortcut testing, independent stick dead zones and mouse-mode controls where GameController permits.
 - 🟢 Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.
-- 🔴 Define foreground/background reconnect behavior within tvOS lifecycle limits; never promise continuous background video decoding.
-- 🔴 Add versioned settings backup/restore through a tvOS-compatible transfer flow; exclude pairing secrets and do not copy Android folder access.
+- 🟢 Disconnect on background while leaving the PC app running; optionally offer reconnect on return (off by default).
+- 🟢 Export versioned settings as a QR backup code and restore validated codes with confirmation; pairing, PC addresses and accounts are excluded.
 - 🟢 Add an in-app remote-operation guide, diagnostics and project/license links; do not show unavailable downloads or paid unlocks.
 - 🔴 Investigate host render scaling, monitor selection and input-only sessions against existing Foundation Sunshine negotiation.
 - 🔴 Investigate microphone forwarding using supported tvOS capture routes and the existing host extension; keep unavailable until verified.
 - 🔴 Validate the existing native interpolation path for supported Apple hardware; do not load Windows Lossless Scaling DLLs or claim Android parity.
-- 🔴 Evaluate additional Moonlight V+ Android screenshots and add feasible features individually; check each off after implementation and relevant verification.
+- 🔴 Evaluate additional Moonlight V+ Android screenshots and add feasible features individually; update each status after implementation and relevant verification.
 - 🔴 Complete physical 160/200 Mbps 4K60, sustained HDR10, and stereo/5.1/7.1 output validation.
 
-### Latest five implementation stages
+### Current five additions
+
+1. 🟢 **Reconnect notice:** saved resolution, FPS, codec, HDR or range changes are compared with the connection's original request; the menu/report explains when reconnecting is needed.
+2. 🟢 **Performance guidance:** explains pacing/output-path limits, the client frame queue and full range; unsupported pacing changes are guarded and range changes require confirmation.
+3. 🟢 **Background return:** disconnects without quitting or locking the PC app; the optional reconnect prompt is off by default.
+4. 🟢 **Settings backup:** scan a locally generated QR code, copy its `SELENE1:` code and paste it with the iPhone Apple TV Remote keyboard into Settings → Others → Settings backup. Preview and confirm before restoring. Only allowlisted settings are included; unavailable codec/HDR/interpolation choices are adjusted.
+5. 🟢 **Host extension report:** Help and diagnostics separates observed live-bitrate request results from unknown or unimplemented host operations. It does not enable unverified resolution, HDR, DPI or microphone controls.
+
+🔴 Physical acceptance of these five additions remains pending. Previous pending device checks also remain open.
+
+### Previous five implementation stages
 
 1. 🟢 **Stream menu reliability:** shared duplicate-Back protection and restored menu focus. The user confirmed streaming was retained; repeated Back/settings/controller acceptance remains pending.
 2. 🟢 **Compact covers and menu customization:** optional compact app cards and six independent shortcut visibility preferences.

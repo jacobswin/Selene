@@ -70,6 +70,8 @@ keys = ['Language', 'Follow System', 'Settings', 'Video', 'Audio', 'On', 'Device
         'Enter exact bitrate (Mbps)', 'AV1 unavailable', 'Retry in SDR from the main screen']
 tv_source = (ROOT / 'Selene/ViewControllers/TVStreamExperience.swift').read_text()
 keys += re.findall(r'"([^"\n]+)"\.localized', tv_source)
+keys += re.findall(r'message\("([^"\n]+)"\)', tv_source)
+keys += ['Reconnect to apply: %@. Disconnect keeps the PC app running.', 'Export settings', 'Restore backup code']
 for array_start, array_end in [('private let guides:', 'override func viewDidLoad()'), ('let entries = [', 'let entry = entries')]:
     block = tv_source.split(array_start)[1].split(array_end)[0]
     keys += [key for key in re.findall(r'"([^"\n]+)"', block) if not key.startswith('https:')]

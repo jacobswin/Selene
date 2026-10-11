@@ -2362,7 +2362,7 @@ final class SettingsSession: NSObject, ObservableObject {
         return false
     }
 
-    var framePacingEnabled: Bool { !usesMetal }
+    var framePacingEnabled: Bool { !usesMetal && (!PublicUtils.isTVOS || !isStreaming) }
 
     /// Single declarative source for Video row identity and state rules. The
     /// renderer, navigation registry and Favorite migration can consume this
@@ -7937,6 +7937,30 @@ private extension SettingsSession {
         return controller
     }
 
+    func tvPerformanceExplanation(_ id: SettingsItemID) -> String? {
+        switch id {
+        case .framePacing:
+            return usesMetal ? "Frame pacing controls apply to the sample-buffer output path, not Metal. Change the renderer before starting a stream to use them.".localized : "Off favors immediate presentation; Legacy follows display timing; Queue Buffering uses a bounded frame queue. Interpolation is device-dependent. Change pacing before connecting.".localized
+        case .frameQueueSize:
+            return "Frames to Buffer is a client queue limit from 0 to 5. Zero favors latency; additional buffering can smooth delivery but adds delay. This is not the host encoder queue. Applies on reconnect.".localized
+        case .fullColorRange:
+            return "Full Color Range requests full-range video; it does not enable HDR. Keep the default unless the host and display chain match. AV1 does not expose this override. Applies on reconnect.".localized
+        default: return nil
+        }
+    }
+
+    func applyTVBackup(_ backup: TVBackupDocument) {
+        customWidth=backup.video["width"]!;customHeight=backup.video["height"]!
+        itemRegistry.usesCustomResolution.value=true;itemRegistry.resolution.value=1
+        itemRegistry.frameRate.value=backup.video["framerate"]!;itemRegistry.bitrate.value=Double(backup.video["bitrate"]!)
+        itemRegistry.codec.value=backup.video["preferredCodec"]!;itemRegistry.audioConfig.value=backup.video["audioConfig"]!
+        itemRegistry.framePacing.value=backup.video["framePacingMode"]!;itemRegistry.frameQueueSize.value=Double(backup.video["frameQueueSize"]!)
+        itemRegistry.renderingBackend.value=backup.video["renderingBackend"]!
+        itemRegistry.hdr.value=backup.flags["enableHdr"]!;itemRegistry.fullColorRange.value=backup.flags["fullColorRange"]!
+        itemRegistry.asyncFrameDequeue.value=backup.flags["asyncFrameDequeue"]!
+        refreshResolutionGeometry()
+    }
+
     var tvCodecCapabilityText: String {
         LocalizationHelper.localizedString(forKey: "HEVC: %@ · AV1: %@", supportsHEVC ? "Hardware decoding supported".localized : "Hardware decoding not detected".localized, supportsAV1 ? "Hardware decoding supported".localized : "Hardware decoding unavailable".localized)
     }
@@ -8223,7 +8247,7 @@ private final class TVNativeSettingsTableController: UITableViewController {
     }
     override func numberOfSections(in tableView: UITableView) -> Int { showsCapabilities ? 1 : groups.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        showsCapabilities ? 4 : groups[section].1.count + (selectedSection == .others ? 5 : 0)
+        showsCapabilities ? 4 : groups[section].1.count + (selectedSection == .others ? 6 : 0)
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         showsCapabilities ? "Device capabilities".localized : groups[section].0
@@ -8279,7 +8303,10 @@ private final class TVNativeSettingsTableController: UITableViewController {
             cell.setContent(title: "Help and diagnostics".localized, value: nil, enabled: true)
             return cell
         }
-        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 5 : 0)]
+        if selectedSection == .others && indexPath.row == 5 {
+            cell.setContent(title:"Settings backup".localized,value:nil,enabled:true);return cell
+        }
+        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 6 : 0)]
         var detail: String?
         switch item.control {
         case let .picker(value, _, options, _):
@@ -8331,14 +8358,31 @@ private final class TVNativeSettingsTableController: UITableViewController {
             present(UINavigationController(rootViewController: TVHelpController()), animated: true)
             return
         }
-        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 5 : 0)]
-        guard item.isEnabled(store) else { return }
+        if selectedSection == .others && indexPath.row == 5 {
+            let backup=TVBackupController { [weak self] document in self?.store.applyTVBackup(document);self?.refreshRows() }
+            present(UINavigationController(rootViewController:backup),animated:true);return
+        }
+        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 6 : 0)]
+        guard item.isEnabled(store) else {
+            if let message = store.tvPerformanceExplanation(item.id) {
+                let alert = UIAlertController(title:item.id.titleKey.localized,message:message,preferredStyle:.alert)
+                alert.addAction(UIAlertAction(title:"OK".localized,style:.cancel)); present(alert,animated:true)
+            }
+            return
+        }
         switch item.control {
         case let .toggle(value, setValue):
+            if item.id == .fullColorRange, let message = store.tvPerformanceExplanation(item.id) {
+                let alert = UIAlertController(title:item.id.titleKey.localized,message:message,preferredStyle:.alert)
+                alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel))
+                alert.addAction(UIAlertAction(title:"Apply".localized,style:.default) { _ in
+                    setValue(self.store,!value(self.store));self.store.persistSettings();self.refreshRows()
+                });present(alert,animated:true);return
+            }
             setValue(store, !value(store)); store.markGameProfileItemChanged(item)
             item.onValueChanged?(store); store.persistSettings()
         case let .picker(value, _, options, _):
-            let explanation = item.id == .frameRate ? "Requested FPS is sent to the host. Actual received FPS and display refresh can differ; see Capability report. A higher requested FPS does not increase the display's physical refresh rate.".localized : item.id == .resolution ? "360p and 480p trade detail for easier decoding. Resolution changes apply on the next connection and do not change your saved bitrate.".localized : nil
+            let explanation = store.tvPerformanceExplanation(item.id) ?? (item.id == .frameRate ? "Requested FPS is sent to the host. Actual received FPS and display refresh can differ; see Capability report. A higher requested FPS does not increase the display's physical refresh rate.".localized : item.id == .resolution ? "360p and 480p trade detail for easier decoding. Resolution changes apply on the next connection and do not change your saved bitrate.".localized : nil)
             let alert = UIAlertController(title: item.id.titleKey.localized, message: explanation, preferredStyle: .actionSheet)
             for option in options(store) {
                 let selected = item.id == .resolution ? store.tvResolutionSelection : value(store)
@@ -8578,6 +8622,9 @@ private final class TVNativeSliderDetail: UIViewController {
         progress.trackTintColor = TVBitrateStyle.button
         let stack = UIStackView(arrangedSubviews: [heading, controls, progress])
         stack.axis = .vertical; stack.spacing = 32
+        if let text = store.tvPerformanceExplanation(item.id) {
+            stack.addArrangedSubview(TVBitrateStyle.label(text,size:22,secondary:true))
+        }
         if item.id == .bitrate {
             let range = UIStackView(arrangedSubviews: [TVBitrateStyle.label("0.5 Mbps", size: 22, secondary: true), TVBitrateStyle.label("800 Mbps", size: 22, secondary: true)])
             range.axis = .horizontal; range.distribution = .equalSpacing

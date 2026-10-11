@@ -18366,8 +18366,13 @@
       }
     },
     "Restore": {
-      "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -18375,12 +18380,6 @@
           }
         },
         "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還原"
-          }
-        },
-        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "還原"
@@ -27549,6 +27548,996 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dolby Vision / Atmos"
+          }
+        }
+      }
+    },
+    "Reconnect to apply: %@. Disconnect keeps the PC app running.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect to apply: %@. Disconnect keeps the PC app running."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接以应用：%@。断开串流会保留电脑应用运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新連線以套用：%@。中斷串流會保留電腦應用程式執行。"
+          }
+        }
+      }
+    },
+    "Pending connection changes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending connection changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待重新连接的更改"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待重新連線的變更"
+          }
+        }
+      }
+    },
+    "Frame pacing controls apply to the sample-buffer output path, not Metal. Change the renderer before starting a stream to use them.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame pacing controls apply to the sample-buffer output path, not Metal. Change the renderer before starting a stream to use them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帧节奏控件用于采样缓冲输出路径，Metal 不使用这些控件。请在开始串流前切换渲染器。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幀節奏控制用於取樣緩衝輸出路徑，Metal 不使用這些控制。請在開始串流前切換算繪器。"
+          }
+        }
+      }
+    },
+    "Off favors immediate presentation; Legacy follows display timing; Queue Buffering uses a bounded frame queue. Interpolation is device-dependent. Change pacing before connecting.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off favors immediate presentation; Legacy follows display timing; Queue Buffering uses a bounded frame queue. Interpolation is device-dependent. Change pacing before connecting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭优先立即显示；传统模式跟随显示时序；队列缓冲使用有上限的帧队列。插帧取决于设备能力。请在连接前修改帧节奏。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉優先立即顯示；傳統模式跟隨顯示時序；佇列緩衝使用有上限的幀佇列。補幀取決於裝置能力。請在連線前修改幀節奏。"
+          }
+        }
+      }
+    },
+    "Frames to Buffer is a client queue limit from 0 to 5. Zero favors latency; additional buffering can smooth delivery but adds delay. This is not the host encoder queue. Applies on reconnect.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frames to Buffer is a client queue limit from 0 to 5. Zero favors latency; additional buffering can smooth delivery but adds delay. This is not the host encoder queue. Applies on reconnect."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓冲帧数是客户端 0–5 帧的队列上限。0 优先低延迟，更多缓冲可平滑到达波动但增加延迟。这不是主机编码队列，重新连接后生效。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緩衝幀數是用戶端 0–5 幀的佇列上限。0 優先低延遲，更多緩衝可平滑到達波動但增加延遲。這不是主機編碼佇列，重新連線後生效。"
+          }
+        }
+      }
+    },
+    "Full Color Range requests full-range video; it does not enable HDR. Keep the default unless the host and display chain match. AV1 does not expose this override. Applies on reconnect.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Color Range requests full-range video; it does not enable HDR. Keep the default unless the host and display chain match. AV1 does not expose this override. Applies on reconnect."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全范围色彩请求全范围视频，不会开启 HDR。除非主机与显示链路匹配，否则保留默认值。AV1 不开放此覆盖设置。重新连接后生效。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全範圍色彩請求全範圍影片，不會開啟 HDR。除非主機與顯示鏈路相符，否則保留預設值。AV1 不開放此覆寫設定。重新連線後生效。"
+          }
+        }
+      }
+    },
+    "Ask to reconnect after Home": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask to reconnect after Home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回 App 后询问重连"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回 App 後詢問重連"
+          }
+        }
+      }
+    },
+    "Reconnect the last app?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect the last app?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接上次的应用？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新連線上次的應用程式？"
+          }
+        }
+      }
+    },
+    "The stream was disconnected in the background. Your PC app was left running.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The stream was disconnected in the background. Your PC app was left running."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流已在后台断开，电脑应用仍在运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流已在背景中斷，電腦應用程式仍在執行。"
+          }
+        }
+      }
+    },
+    "Stay in app list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay in app list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留在应用列表"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留在應用程式清單"
+          }
+        }
+      }
+    },
+    "Reconnect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新連線"
+          }
+        }
+      }
+    },
+    "PC unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PC unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电脑不可用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電腦無法使用"
+          }
+        }
+      }
+    },
+    "Select the PC again after it comes online.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select the PC again after it comes online."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电脑上线后请重新选择。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電腦上線後請重新選擇。"
+          }
+        }
+      }
+    },
+    "Host extension report": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host extension report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机扩展报告"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機擴充報告"
+          }
+        }
+      }
+    },
+    "Not verified in this session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not verified in this session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话尚未验证"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次工作階段尚未驗證"
+          }
+        }
+      }
+    },
+    "A request was accepted in this session; this does not establish actual throughput.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A request was accepted in this session; this does not establish actual throughput."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话曾接受请求，但这不代表实际吞吐达到目标。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次工作階段曾接受請求，但這不代表實際傳輸達到目標。"
+          }
+        }
+      }
+    },
+    "The bitrate endpoint was unavailable in this session.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bitrate endpoint was unavailable in this session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话的码率接口不可用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次工作階段的位元率介面無法使用。"
+          }
+        }
+      }
+    },
+    "Request failed (status %d); support is unconfirmed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request failed (status %d); support is unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求失败（状态 %d），支持情况未确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請求失敗（狀態 %d），支援情況未確認。"
+          }
+        }
+      }
+    },
+    "Live bitrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live bitrate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时码率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即時位元率"
+          }
+        }
+      }
+    },
+    "Live resolution / HDR": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live resolution / HDR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时分辨率 / HDR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即時解析度 / HDR"
+          }
+        }
+      }
+    },
+    "No verified live operation is exposed. Reconnect to apply saved settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verified live operation is exposed. Reconnect to apply saved settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开放经过验证的实时操作，请重连以应用保存的设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未開放經過驗證的即時操作，請重新連線以套用儲存的設定。"
+          }
+        }
+      }
+    },
+    "Host touch keyboard / Windows DPI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host touch keyboard / Windows DPI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机触摸键盘 / Windows DPI"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機觸控鍵盤 / Windows DPI"
+          }
+        }
+      }
+    },
+    "Not negotiated by the current client. No unsupported control is exposed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not negotiated by the current client. No unsupported control is exposed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前客户端未协商此能力，不开放无支持依据的控件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前用戶端未協商此能力，不開放無支援依據的控制。"
+          }
+        }
+      }
+    },
+    "Monitor / render scaling / input-only": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor / render scaling / input-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示器 / 渲染比例 / 仅控制"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示器 / 算繪比例 / 僅控制"
+          }
+        }
+      }
+    },
+    "Microphone forwarding": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone forwarding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风转发"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風轉送"
+          }
+        }
+      }
+    },
+    "Not implemented by this tvOS client.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not implemented by this tvOS client."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 tvOS 客户端尚未实现。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 tvOS 用戶端尚未實作。"
+          }
+        }
+      }
+    },
+    "Native interpolation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native interpolation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原生插帧"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原生補幀"
+          }
+        }
+      }
+    },
+    "Device support detected; physical playback validation is still pending.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device support detected; physical playback validation is still pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到设备支持，实际播放仍待真机验证。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偵測到裝置支援，實際播放仍待實機驗證。"
+          }
+        }
+      }
+    },
+    "Unavailable on this device": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备不可用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此裝置無法使用"
+          }
+        }
+      }
+    },
+    "Client negotiation evidence, not a claim about all Sunshine capabilities.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Client negotiation evidence, not a claim about all Sunshine capabilities."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处记录客户端协商证据，不代表 Sunshine 的全部能力。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此處記錄用戶端協商證據，不代表 Sunshine 的全部能力。"
+          }
+        }
+      }
+    },
+    "Settings backup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings backup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置备份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定備份"
+          }
+        }
+      }
+    },
+    "Stream and UI settings only. Pairing, PC addresses and accounts are excluded.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stream and UI settings only. Pairing, PC addresses and accounts are excluded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只备份串流与界面设置，不包含配对、电脑地址和账号。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只備份串流與介面設定，不包含配對、電腦位址和帳號。"
+          }
+        }
+      }
+    },
+    "Export settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出設定"
+          }
+        }
+      }
+    },
+    "Restore backup code": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore backup code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复备份代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原備份代碼"
+          }
+        }
+      }
+    },
+    "Unable to export these settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to export these settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法导出当前设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法匯出目前設定。"
+          }
+        }
+      }
+    },
+    "Disconnect the stream before restoring settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect the stream before restoring settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复设置前请先断开串流。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原設定前請先中斷串流。"
+          }
+        }
+      }
+    },
+    "Paste the backup code using the iPhone Apple TV Remote keyboard.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the backup code using the iPhone Apple TV Remote keyboard."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 iPhone 上的 Apple TV 遥控器键盘粘贴备份代码。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 iPhone 上的 Apple TV 遙控器鍵盤貼上備份代碼。"
+          }
+        }
+      }
+    },
+    "Backup code": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份代碼"
+          }
+        }
+      }
+    },
+    "Preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "預覽"
+          }
+        }
+      }
+    },
+    "Invalid or unsupported backup. Existing settings were kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid or unsupported backup. Existing settings were kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份无效或不受支持，已保留原有设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份無效或不受支援，已保留原有設定。"
+          }
+        }
+      }
+    },
+    "Restore these settings?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore these settings?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复这些设置？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原這些設定？"
+          }
+        }
+      }
+    },
+    "Unsupported codec, HDR or interpolation settings were adjusted for this device.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported codec, HDR or interpolation settings were adjusted for this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已根据此设备调整不支持的编码、HDR 或插帧设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已根據此裝置調整不支援的編碼、HDR 或補幀設定。"
+          }
+        }
+      }
+    },
+    "Pairing and saved PCs will not change.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing and saved PCs will not change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会更改配对和已保存的电脑。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不會變更配對和已儲存的電腦。"
+          }
+        }
+      }
+    },
+    "Settings restored. Pairing and saved PCs were kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings restored. Pairing and saved PCs were kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置已恢复，配对与已保存的电脑已保留。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定已還原，配對與已儲存的電腦已保留。"
+          }
+        }
+      }
+    },
+    "Scan and copy this backup code on your phone. Keep it for Restore backup code. It contains no pairing secrets or PC addresses.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan and copy this backup code on your phone. Keep it for Restore backup code. It contains no pairing secrets or PC addresses."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用手机扫码复制备份代码，保存后可用于恢复。不包含配对密钥或电脑地址。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用手機掃碼複製備份代碼，儲存後可用於還原。不包含配對金鑰或電腦位址。"
           }
         }
       }

@@ -168,3 +168,15 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - All 14 tvOS policy/transport/localization test scripts passed, including new session reload and inactive-report tests. Signed Apple TV Debug build passed. Physical full-suite acceptance, controller behavior, Windows lock state and help layout remain pending. Simulator streaming was not used.
 
 - Final signed build was installed successfully on the paired Apple TV after one transient development-connection reset. Installation is not physical UI or streaming acceptance.
+
+### 2026-10-11: next five additions
+
+- Added reconnect-required comparison against the connection's original saved request. Menu and capability report expose pending resolution/FPS/codec/HDR/range changes without pretending to apply them live.
+- Added pacing/output-path explanations and live/unsupported guards, client-queue guidance and full-range confirmation; defaults are unchanged.
+- tvOS background disconnect now preserves the PC app. Optional foreground reconnect prompt defaults off; no Win+L or quit request is sent on background. Matching app/host and online state are checked before reconnecting.
+- Added version-1 QR/code settings transfer with strict dictionary allowlists, bounds, payload limits, preview/confirmation and device compatibility adjustment. It excludes saved PCs, addresses, credentials and pairing material. The open settings model is synchronized after restoration to avoid overwriting imported video settings. Restore is blocked during streaming.
+- Added evidence-based host extension report: live-bitrate status comes from actual session requests; unverified live resolution/HDR/DPI/monitor/input-only/microphone operations remain unavailable. Native interpolation capability detection is not physical acceptance.
+- Signed generic Apple TV Debug build passed with Xcode 27. All 16 tvOS policy/transport/localization test scripts passed. Added backup round-trip, malformed/version/allowlist/bounds/device-limit tests and reconnect-change/evidence tests. Existing session/request/adaptive tests cover the extended session capture; localization and preference checks include the new flows.
+- Physical Home/foreground flow, QR scan/paste/restore, performance descriptions/layout and reconnect notices remain unverified. Simulator streaming was not used. No host protocol changes or private screenshots/logs are included.
+
+- Signed build installed on the paired physical Apple TV after one development-connection reset; the launch command succeeded. This confirms deployment only, not physical feature acceptance.

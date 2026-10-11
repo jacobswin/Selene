@@ -2,6 +2,7 @@
 from pathlib import Path
 import subprocess,tempfile
 s=(Path(__file__).resolve().parents[1]/'Selene/ViewControllers/TVStreamExperience.swift').read_text()
+requestPolicy='struct TVConnectionRequest: Equatable {'+s.split('struct TVConnectionRequest: Equatable {')[1].split('// End connection request policy.')[0]
 gate='struct TVBackGate {'+s.split('struct TVBackGate {')[1].split('@objcMembers final class TVClientPreferences')[0]
 session=s.split('@objcMembers final class SeleneTVSession: NSObject {')[1].split('    @objc(showMenuFrom:)')[0]
 policy=s.split('// Pure adaptive policy:')[1].split('// End pure adaptive policy.')[0];policy=policy[policy.index('struct TVAdaptiveSample'):]
@@ -11,13 +12,13 @@ import Foundation
 var clock = 0.0
 func CACurrentMediaTime()->Double { clock }
 extension String { var localized:String { self } }
-final class Config { var bitRate:Int32=200000 }
+final class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false; var bitRate:Int32=200000 }
 final class Host { var status=200; var requested=0; func request(forBitrate:Int)->Int { status }; func updateRequestedBitrate(_ value:Int32) { requested=Int(value) } }
 final class StreamFrameViewController { let streamConfig=Config(); var mainFrameViewcontroller:Host?=Host(); var metrics:[String:Any]=[:]; func tvStreamMeasurements()->[String:Any] { metrics } }
-final class Settings { var preferredCodec=0; var bitrate:NSNumber=200000 }
+final class Settings { var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false; var preferredCodec=0; var bitrate:NSNumber=200000 }
 final class DataManager { static let settings=Settings(); func getSettings()->Settings? { Self.settings }; func retrieveSettings()->Settings? { Self.settings }; func saveData() {} }
 final class KeyboardSupport { static func releaseAllKeys() {} }
-final class LocalizationHelper { static func localizedString(forKey:String,_ status:Int,_ bitrate:Double)->String { "rejected" } }
+final class LocalizationHelper { static func localizedString(forKey:String,_ names:String)->String {names}; static func localizedString(forKey:String,_ status:Int,_ bitrate:Double)->String { "rejected" } }
 '''
 checks='''
 func pump(_ condition:()->Bool) { let deadline=Date().addingTimeInterval(2); while !condition() && Date()<deadline { RunLoop.main.run(until:Date().addingTimeInterval(0.001)) }; assert(condition()) }
@@ -47,5 +48,5 @@ for key in ["enabled","lower","upper"] { defaults.removeObject(forKey:"Selene.ab
 print("PASS: unsupported host stops automation, three timeout failures pause, accepted automatic target preserves manual storage, same-target manual override persists and session shutdown")
 '''
 with tempfile.TemporaryDirectory() as d:
- p=Path(d)/'runtime.swift';p.write_text(prefix+gate+'final class SeleneTVSession:NSObject {'+session+'}\n'+policy+runtime+checks)
+ p=Path(d)/'runtime.swift';p.write_text(prefix+gate+requestPolicy+'final class SeleneTVSession:NSObject {'+session+'}\n'+policy+runtime+checks)
  subprocess.run(['/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift',str(p)],check=True)
