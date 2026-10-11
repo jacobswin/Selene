@@ -43,9 +43,13 @@ int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers) {
 
 // Only explicit stream-menu actions may bypass the ordinary input suspension.
 + (void)performShortcut:(NSArray<NSNumber *> *)keys completion:(void (^)(void))completion {
+    [self performShortcutWithResult:keys completion:^(BOOL sent) { if (completion) completion(); }];
+}
++ (void)performShortcutWithResult:(NSArray<NSNumber *> *)keys completion:(void (^)(BOOL))completion {
     SeleneInitKeyState(); [seleneKeyLock lock];
     [self releaseAllKeys];
     __block char modifiers = 0;
+    __block BOOL sent = YES;
     for (NSNumber *key in keys) {
         if (key.intValue == 0xA4) modifiers |= MODIFIER_ALT;
         if (key.intValue == 0x5B) modifiers |= MODIFIER_META;
@@ -53,7 +57,7 @@ int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers) {
         if (key.intValue == 0xA0) modifiers |= MODIFIER_SHIFT;
         short code = (short)(0x8000 | key.intValue);
         [selenePressedKeys addObject:@((unsigned short)code)];
-        LiSendKeyboardEvent(code, KEY_ACTION_DOWN, modifiers);
+        if (LiSendKeyboardEvent(code, KEY_ACTION_DOWN, modifiers) != 0) sent = NO;
     }
     [seleneKeyLock unlock];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 50 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
@@ -65,11 +69,13 @@ int SeleneSendKeyboardEvent(short keyCode, char action, char modifiers) {
             if (key.intValue == 0xA2) modifiers &= ~MODIFIER_CTRL;
             if (key.intValue == 0xA0) modifiers &= ~MODIFIER_SHIFT;
             NSNumber *number = @((unsigned short)code);
-            if ([selenePressedKeys containsObject:number]) LiSendKeyboardEvent(code, KEY_ACTION_UP, modifiers);
+            if ([selenePressedKeys containsObject:number]) {
+                if (LiSendKeyboardEvent(code, KEY_ACTION_UP, modifiers) != 0) sent = NO;
+            } else { sent = NO; }
             [selenePressedKeys removeObject:number];
         }
         [seleneKeyLock unlock];
-        if (completion) completion();
+        if (completion) completion(sent);
     });
 }
 

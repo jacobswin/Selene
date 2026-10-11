@@ -26520,6 +26520,94 @@
           }
         }
       }
+    },
+    "Lock PC on disconnect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lock PC on disconnect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开时锁定电脑"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷時鎖定電腦"
+          }
+        }
+      }
+    },
+    "Disconnect behavior": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect behavior"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开行为"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷行為"
+          }
+        }
+      }
+    },
+    "Lock shortcut sent. The host does not confirm lock state.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lock shortcut sent. The host does not confirm lock state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定快捷键已发送，主机不提供锁定状态确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定快捷鍵已傳送，主機不提供鎖定狀態確認。"
+          }
+        }
+      }
+    },
+    "Could not send the lock shortcut. Disconnecting without confirmed lock.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not send the lock shortcut. Disconnecting without confirmed lock."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法发送锁定快捷键。将断开串流，未确认锁定。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法傳送鎖定快捷鍵。將中斷串流，未確認鎖定。"
+          }
+        }
+      }
     }
   },
   "version": "1.1"

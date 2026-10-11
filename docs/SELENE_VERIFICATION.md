@@ -145,3 +145,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Added standard/compact covers (compact cards use 72% of standard dimensions), with the existing whole-card focus animation and app-ID restoration. Added independent visibility preferences for six stream shortcuts, all enabled by default.
 - Preference default/persistence and three-language tests passed. Signed Apple TV Debug build passed. Physical grid/focus/visibility acceptance remains pending.
 - User reported streaming was retained after testing the stage 1 return operation. This is basic physical feedback, not completion of the 20-press/10-round-trip or controller acceptance suite.
+
+### 2026-10-11: stage 3 optional lock-on-disconnect
+
+- Added disabled-by-default lock-on-disconnect. Only an explicit ordinary disconnect sends Win+L before teardown; quit-app, background and unexpected disconnect do not invoke it.
+- Explicit shortcut sender now aggregates transport return codes and releases modifiers in reverse order. Menu reports sent/failed, never confirmed host lock, then disconnects. Generation checks ignore callbacks from an ended session.
+- Fake-transport tests passed for Win+L order, cancellation and failure propagation; preferences/localization tests and signed Apple TV Debug build passed. Actual Windows lock-screen acceptance remains pending.

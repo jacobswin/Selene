@@ -14,13 +14,15 @@ program=r'''
 #define MODIFIER_CTRL 2
 #define MODIFIER_SHIFT 1
 static NSMutableArray *events;
+static BOOL failTransport = NO;
 int LiSendKeyboardEvent(short key, char action, char modifiers) {
- [events addObject:@[@((unsigned short)key),@(action),@(modifiers)]]; return 0;
+ [events addObject:@[@((unsigned short)key),@(action),@(modifiers)]]; return failTransport ? -1 : 0;
 }
 @interface KeyboardSupport:NSObject
 + (void)releaseAllKeys;
 + (void)setForwardingSuspended:(BOOL)value;
 + (void)performShortcut:(NSArray*)keys completion:(void(^)(void))completion;
++ (void)performShortcutWithResult:(NSArray*)keys completion:(void(^)(BOOL))completion;
 @end
 static BOOL seleneInputSuspended'''+state+r'''
 @end
@@ -41,6 +43,15 @@ int main() { @autoreleasepool {
  [KeyboardSupport setForwardingSuspended:NO];
  [events removeAllObjects]; SeleneSendKeyboardEvent(0x8041,KEY_ACTION_DOWN,0);
  [KeyboardSupport setForwardingSuspended:YES]; assert(events.count==2);
+ [events removeAllObjects];done=NO;__block BOOL sent=NO;
+ [KeyboardSupport performShortcutWithResult:@[@0x5B,@0x4C] completion:^(BOOL result){sent=result;done=YES;}];
+ while(!done) [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
+ assert(sent); assert([events[0][0] intValue]==0x805B);assert([events[1][0] intValue]==0x804C);
+ assert([events[2][0] intValue]==0x804C);assert([events[3][0] intValue]==0x805B);
+ failTransport=YES;done=NO;
+ [KeyboardSupport performShortcutWithResult:@[@0x5B,@0x4C] completion:^(BOOL result){sent=result;done=YES;}];
+ while(!done) [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
+ assert(!sent);
  puts("PASS: ordinary input suspension, explicit Alt+Tab ordering, modifier release and cancelled-key cleanup");
  } return 0; }
 '''

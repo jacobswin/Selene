@@ -23,6 +23,10 @@ struct TVBackGate {
             NotificationCenter.default.post(name: Notification.Name("SeleneTVAppearanceChanged"), object: nil)
         }
     }
+    static var lockOnDisconnect: Bool {
+        get { UserDefaults.standard.bool(forKey: "Selene.tv.lockOnDisconnect") }
+        set { UserDefaults.standard.set(newValue, forKey: "Selene.tv.lockOnDisconnect") }
+    }
     static func shortcutVisible(_ id: String) -> Bool {
         (UserDefaults.standard.object(forKey: "Selene.tv.shortcut." + id) as? Bool) ?? true
     }
@@ -46,7 +50,8 @@ final class TVClientSettingsController: UITableViewController {
         let shortcuts: [Row] = [("altTab", "Alt+Tab"), ("windows", "Windows"), ("esc", "Esc"), ("enter", "Enter"), ("text", "Text input"), ("capabilities", "Capability report")].map { id, title in
             (title, { TVClientPreferences.shortcutVisible(id) ? "On".localized : "Off".localized }, { TVClientPreferences.setShortcutVisible(id, visible: !TVClientPreferences.shortcutVisible(id)) })
         }
-        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts)]
+        let lock: Row = ("Lock PC on disconnect", { TVClientPreferences.lockOnDisconnect ? "On".localized : "Off".localized }, { TVClientPreferences.lockOnDisconnect.toggle() })
+        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock])]
     }
     override func numberOfSections(in tableView: UITableView) -> Int { groups.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { groups[section].1.count }
@@ -196,6 +201,7 @@ final class TVStreamMenuController: UIViewController {
     private let bitrate = tvStreamLabel("", size: 38)
     private let received = tvStreamLabel("", size: 22)
     private var timer: Timer?
+    private var disconnecting = false
     private let left = UIStackView()
     private let right = UIStackView()
     init(session: SeleneTVSession) {
@@ -281,7 +287,7 @@ final class TVStreamMenuController: UIViewController {
         if let dropped = session.stream?.tvStreamMeasurements()["renderDroppedFrames"] as? NSNumber, dropped.doubleValue > 0 {
             status.text = (status.text ?? "") + "\n" + "Render frame drops detected; automatic bitrate uses network measurements only.".localized
         }
-        bitrateButtons.forEach { $0.isEnabled = !session.pending; $0.alpha = session.pending ? 0.4 : 1 }
+        bitrateButtons.forEach { $0.isEnabled = !session.pending && !disconnecting; $0.alpha = session.pending ? 0.4 : 1 }
     }
     func apply(_ kbps: Int) { session.requestManual(kbps) { [weak self] _, _, _ in self?.refresh() } }
     private func step(_ direction: Int) { apply(session.targetKbps + direction * (session.targetKbps <= 200_000 ? 10_000 : 25_000)) }
@@ -291,13 +297,30 @@ final class TVStreamMenuController: UIViewController {
         } else { dismiss(animated: true, completion: completion) }
     }
     func resume() {
+        guard !disconnecting else { return }
         session.blockDuplicateBack()
         KeyboardSupport.releaseAllKeys()
         session.nextFocus = "continue"
         closeMenu { self.session.stream?.tvSetInputPaused(false) }
     }
     private func disconnect(closeApp: Bool) {
-        closeMenu { self.session.stream?.tvDisconnectCloseApp(closeApp) }
+        guard !disconnecting else { return }
+        disconnecting = true
+        buttons.values.forEach { $0.isEnabled = false }
+        bitrateButtons.forEach { $0.isEnabled = false }
+        guard !closeApp, TVClientPreferences.lockOnDisconnect, session.stream != nil else {
+            closeMenu { self.session.stream?.tvDisconnectCloseApp(closeApp) }; return
+        }
+        let token = session.generation
+        KeyboardSupport.performShortcut(withResult: [0x5B, 0x4C]) { [weak self] sent in
+            guard let self, self.session.generation == token, self.session.stream != nil else { return }
+            self.session.lastMessage = sent ? "Lock shortcut sent. The host does not confirm lock state.".localized : "Could not send the lock shortcut. Disconnecting without confirmed lock.".localized
+            self.refresh()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                guard let self, self.session.generation == token else { return }
+                self.closeMenu { self.session.stream?.tvDisconnectCloseApp(false) }
+            }
+        }
     }
     private func sendShortcut(_ keys: [Int]) {
         closeMenu { [weak session] in
