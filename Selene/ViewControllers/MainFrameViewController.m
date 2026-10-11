@@ -2142,8 +2142,18 @@ static NSMutableSet* hostList;
     [dataMan saveData];
 }
 
+#if TARGET_OS_TV
+- (void)tvAppearanceChanged:(NSNotification *)notification {
+    [self.collectionView.collectionViewLayout invalidateLayout];
+    [self.collectionView reloadData];
+    [self setNeedsFocusUpdate];
+}
+#endif
 - (void)viewDidLoad{
     [super viewDidLoad];
+#if TARGET_OS_TV
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tvAppearanceChanged:) name:@"SeleneTVAppearanceChanged" object:nil];
+#endif
 #if TARGET_OS_TV
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(updateTheme) name:@"MoonlightPlusLanguageDidChange" object:nil];
 #endif
@@ -2828,6 +2838,9 @@ static NSMutableSet* hostList;
     CGSize cellSize;
     if(PublicUtils.isIPhone) cellSize.height = 0.365*MIN(CGRectGetHeight([[UIScreen mainScreen] bounds]),CGRectGetWidth([[UIScreen mainScreen] bounds]));
     else cellSize.height = 0.272*MIN(CGRectGetHeight([[UIScreen mainScreen] bounds]),CGRectGetWidth([[UIScreen mainScreen] bounds]));
+#if TARGET_OS_TV
+    if (TVClientPreferences.compactCovers) cellSize.height *= 0.72;
+#endif
     TemporaryApp* app = self.sortedAppList[indexPath.row];
     UIAppView* appView = [[UIAppView alloc] initWithApp:app cache:_boxArtCache andCallback:self];
 

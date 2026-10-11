@@ -15,6 +15,63 @@ struct TVBackGate {
     mutating func block(_ now: Double) { blockedUntil = now + 0.3 }
 }
 
+@objcMembers final class TVClientPreferences: NSObject {
+    static var compactCovers: Bool {
+        get { UserDefaults.standard.bool(forKey: "Selene.tv.compactCovers") }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "Selene.tv.compactCovers")
+            NotificationCenter.default.post(name: Notification.Name("SeleneTVAppearanceChanged"), object: nil)
+        }
+    }
+    static func shortcutVisible(_ id: String) -> Bool {
+        (UserDefaults.standard.object(forKey: "Selene.tv.shortcut." + id) as? Bool) ?? true
+    }
+    static func setShortcutVisible(_ id: String, visible: Bool) {
+        UserDefaults.standard.set(visible, forKey: "Selene.tv.shortcut." + id)
+    }
+}
+
+final class TVClientSettingsController: UITableViewController {
+    typealias Row = (title: String, value: () -> String, action: () -> Void)
+    private var groups: [(String, [Row])] = []
+    override func viewDidLoad() {
+        super.viewDidLoad(); title = "TV experience".localized
+        tableView.backgroundColor = UIColor(white: 0.04, alpha: 1)
+        tableView.rowHeight = 90; tableView.remembersLastFocusedIndexPath = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done".localized, style: .done, target: self, action: #selector(close))
+        makeRows()
+    }
+    private func makeRows() {
+        let compact: Row = ("App cover size", { TVClientPreferences.compactCovers ? "Compact covers".localized : "Standard covers".localized }, { TVClientPreferences.compactCovers.toggle() })
+        let shortcuts: [Row] = [("altTab", "Alt+Tab"), ("windows", "Windows"), ("esc", "Esc"), ("enter", "Enter"), ("text", "Text input"), ("capabilities", "Capability report")].map { id, title in
+            (title, { TVClientPreferences.shortcutVisible(id) ? "On".localized : "Off".localized }, { TVClientPreferences.setShortcutVisible(id, visible: !TVClientPreferences.shortcutVisible(id)) })
+        }
+        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts)]
+    }
+    override func numberOfSections(in tableView: UITableView) -> Int { groups.count }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { groups[section].1.count }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { groups[section].0.localized }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let row = groups[indexPath.section].1[indexPath.row]
+        let cell = TVCapabilityCell(style: .value1, reuseIdentifier: nil)
+        cell.backgroundColor = UIColor(white: 0.09, alpha: 1)
+        cell.textLabel?.text = row.title.localized; cell.textLabel?.textColor = .white
+        cell.detailTextLabel?.text = row.value(); cell.detailTextLabel?.textColor = .lightGray
+        return cell
+    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        groups[indexPath.section].1[indexPath.row].action()
+        tableView.reloadRows(at: [indexPath], with: .none)
+    }
+    @objc private func close() { dismiss(animated: true) }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { return }; super.pressesBegan(presses, with: event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where: { $0.type == .menu }) { close(); return }; super.pressesEnded(presses, with: event)
+    }
+}
+
 /// One owner for a stream's acknowledged bitrate and serialized host mutations.
 @objcMembers final class SeleneTVSession: NSObject {
     static let shared = SeleneTVSession()
@@ -147,7 +204,7 @@ final class TVStreamMenuController: UIViewController {
     }
     required init?(coder: NSCoder) { fatalError() }
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        buttons[session.nextFocus].map { [$0] } ?? super.preferredFocusEnvironments
+        buttons[session.nextFocus].map { [$0] } ?? buttons["continue"].map { [$0] } ?? super.preferredFocusEnvironments
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -177,9 +234,10 @@ final class TVStreamMenuController: UIViewController {
             guard let self else { return }; self.session.returningFromSettings = true
             self.dismiss(animated: true) { self.session.stream?.tvPresentSettings() }
         }
-        add("capabilities", "Capability report") { [weak self] in
+        if TVClientPreferences.shortcutVisible("capabilities") { add("capabilities", "Capability report") { [weak self] in
             guard let self else { return }; self.session.nextFocus = "capabilities"
             self.present(UINavigationController(rootViewController: TVStreamCapabilityController()), animated: true)
+        }
         }
         add("keys", "Keyboard shortcuts") { [weak self] in self?.chooseKeys() }
         add("disconnect", "Disconnect stream") { [weak self] in self?.disconnect(closeApp: false) }
@@ -254,10 +312,10 @@ final class TVStreamMenuController: UIViewController {
     private func chooseKeys() {
         session.nextFocus = "keys"
         let alert = UIAlertController(title: "Keyboard shortcuts".localized, message: nil, preferredStyle: .alert)
-        for (title, keys) in [("Alt+Tab", [0xA4,0x09]), ("Windows", [0x5B]), ("Esc", [0x1B]), ("Enter", [0x0D])] {
+        for (id, title, keys) in [("altTab", "Alt+Tab", [0xA4,0x09]), ("windows", "Windows", [0x5B]), ("esc", "Esc", [0x1B]), ("enter", "Enter", [0x0D])] where TVClientPreferences.shortcutVisible(id) {
             alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in self?.sendShortcut(keys) })
         }
-        alert.addAction(UIAlertAction(title: "Text input".localized, style: .default) { [weak self] _ in
+        if TVClientPreferences.shortcutVisible("text") { alert.addAction(UIAlertAction(title: "Text input".localized, style: .default) { [weak self] _ in
             guard let self else { return }
             self.dismiss(animated: false) {
                 let input = TVStreamTextInputController { [weak self] text in
@@ -268,6 +326,7 @@ final class TVStreamMenuController: UIViewController {
                 self.present(input, animated: true)
             }
         })
+        }
         alert.addAction(UIAlertAction(title: "Special keys".localized, style: .default) { [weak self] _ in
             guard let self else { return }; self.dismiss(animated: false) { self.chooseSpecialKeys() }
         })

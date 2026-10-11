@@ -40,7 +40,7 @@ This checklist tracks feature implementation and bug fixes. Cleanup and feature 
 - 🟢 Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
 - 🟢 Add client-side adaptive bitrate with explicit bounds, network-frame-loss/latency feedback, manual override, and host capability checks.
 - 🟢 Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
-- 🔴 Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
+- 🟢 Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
 - 🟢 Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
 - 🔴 Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
 - 🔴 Add controller shortcut testing, dead-zone/center calibration and mouse-mode controls where GameController permits.

@@ -139,3 +139,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Added a shared 300 ms Back gate for duplicate navigation/responder/gesture delivery and dismissal bounce. Menu focus is remembered; nested presentation returns one layer without resuming ordinary host input.
 - Production Back-gate tests cover duplicate events, close/reopen bounce and 20 independent presses; existing shortcut suspension/release tests passed. Signed Apple TV Debug build passed.
 - This does not establish physical Menu acceptance: 20 remote presses, 10 settings round trips, uninterrupted video/audio, controller isolation and restored application focus remain pending on Apple TV.
+
+### 2026-10-11: stage 2 compact covers and menu preferences
+
+- Added standard/compact covers (compact cards use 72% of standard dimensions), with the existing whole-card focus animation and app-ID restoration. Added independent visibility preferences for six stream shortcuts, all enabled by default.
+- Preference default/persistence and three-language tests passed. Signed Apple TV Debug build passed. Physical grid/focus/visibility acceptance remains pending.
+- User reported streaming was retained after testing the stage 1 return operation. This is basic physical feedback, not completion of the 20-press/10-round-trip or controller acceptance suite.

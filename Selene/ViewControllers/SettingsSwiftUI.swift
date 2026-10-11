@@ -8223,7 +8223,7 @@ private final class TVNativeSettingsTableController: UITableViewController {
     }
     override func numberOfSections(in tableView: UITableView) -> Int { showsCapabilities ? 1 : groups.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        showsCapabilities ? 4 : groups[section].1.count + (selectedSection == .others ? 3 : 0)
+        showsCapabilities ? 4 : groups[section].1.count + (selectedSection == .others ? 4 : 0)
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         showsCapabilities ? "Device capabilities".localized : groups[section].0
@@ -8271,7 +8271,11 @@ private final class TVNativeSettingsTableController: UITableViewController {
             cell.setContent(title: "Adaptive bitrate".localized, value: SeleneTVSession.shared.adaptive.statusText, enabled: true)
             return cell
         }
-        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 3 : 0)]
+        if selectedSection == .others && indexPath.row == 3 {
+            cell.setContent(title: "TV experience".localized, value: nil, enabled: true)
+            return cell
+        }
+        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 4 : 0)]
         var detail: String?
         switch item.control {
         case let .picker(value, _, options, _):
@@ -8315,7 +8319,11 @@ private final class TVNativeSettingsTableController: UITableViewController {
             present(TVAdaptiveSettingsController(), animated: true)
             return
         }
-        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 3 : 0)]
+        if selectedSection == .others && indexPath.row == 3 {
+            present(UINavigationController(rootViewController: TVClientSettingsController()), animated: true)
+            return
+        }
+        let item = groups[indexPath.section].1[indexPath.row - (selectedSection == .others ? 4 : 0)]
         guard item.isEnabled(store) else { return }
         switch item.control {
         case let .toggle(value, setValue):
