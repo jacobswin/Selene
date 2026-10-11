@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README_CN.md)
 
-<p align="center"><img src="docs/branding/selene-icon-master.png" width="480" alt="Selene app icon"></p>
+<p align="center"><img src="docs/branding/selene-tvos-icon-master.png" width="480" alt="Selene app icon"></p>
 
 An open-source game streaming client for **Apple TV**, built on the Moonlight ecosystem. Stream your PC games and desktop through Sunshine, with a tvOS interface designed for the Siri Remote and native controller navigation.
 
@@ -14,7 +14,7 @@ An open-source game streaming client for **Apple TV**, built on the Moonlight ec
 
 - Native tvOS focus, a single host-to-app entry, and focus restoration after settings or streaming.
 - Modern two-column settings; focusing a category immediately shows its contents.
-- Resolution choices include 720p, 1080p, 2K (2560×1440), 3K (3200×1800), 4K, and custom even dimensions within device limits.
+- Resolution choices include 360p, 480p, 720p, 1080p, 2K (2560×1440), 3K (3200×1800), 4K, and custom even dimensions within device limits.
 - English, Simplified Chinese, and Traditional Chinese, with an in-app language selector. Other system languages fall back to English.
 - Configurable bitrate up to **800 Mbps**, including custom values above 150 Mbps. This is a configuration limit, **not guaranteed network throughput**.
 - Remote-operated bitrate keypad; −/+ use 10 Mbps steps at or below 200 Mbps and 25 Mbps above 200 Mbps.
@@ -29,30 +29,30 @@ The current stream path does **not support Dolby Vision or Dolby Atmos**. HDR10 
 
 ## TODO
 
-This checklist tracks feature implementation and bug fixes. Cleanup and feature removals are recorded in the verification notes. Checked items are implemented; physical streaming validation is tracked separately. Android reference features are reviewed for tvOS and the existing Sunshine protocol before being added here.
+This checklist tracks feature implementation and bug fixes. Cleanup and feature removals are recorded in the verification notes. 🟢 Implemented · 🔴 Pending. Checked items are implemented; physical streaming validation is tracked separately. Android reference features are reviewed for tvOS and the existing Sunshine protocol before being added here.
 
-- [x] Back/Menu opens a stream dialog instead of immediately leaving; offer Continue, Stream settings, Disconnect, and Disconnect and close app (with confirmation).
-- [ ] Validate the new dialog on Apple TV: repeated Back, settings round trips, controller/keyboard input, both exit actions, and restored app focus.
-- [x] Bring live bitrate and performance statistics directly into the stream menu, with host rejection feedback and safe focus navigation.
-- [x] Add menu shortcuts for Alt+Tab, Windows, special keys, and explicit tvOS text input; release all pressed keys when dismissed or disconnected.
-- [ ] Investigate in-session resolution and HDR changes with Foundation Sunshine; expose only negotiated support, otherwise clearly require reconnecting.
-- [ ] Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
-- [x] Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
-- [x] Add client-side adaptive bitrate with explicit bounds, network-frame-loss/latency feedback, manual override, and host capability checks.
-- [x] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
-- [ ] Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
-- [x] Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
-- [ ] Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
-- [ ] Add controller shortcut testing, dead-zone/center calibration and mouse-mode controls where GameController permits.
-- [ ] Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.
-- [ ] Define foreground/background reconnect behavior within tvOS lifecycle limits; never promise continuous background video decoding.
-- [ ] Add versioned settings backup/restore through a tvOS-compatible transfer flow; exclude pairing secrets and do not copy Android folder access.
-- [ ] Add an in-app remote-operation guide, diagnostics and project/license links; do not show unavailable downloads or paid unlocks.
-- [ ] Investigate host render scaling, monitor selection and input-only sessions against existing Foundation Sunshine negotiation.
-- [ ] Investigate microphone forwarding using supported tvOS capture routes and the existing host extension; keep unavailable until verified.
-- [ ] Validate the existing native interpolation path for supported Apple hardware; do not load Windows Lossless Scaling DLLs or claim Android parity.
-- [ ] Evaluate additional Moonlight V+ Android screenshots and add feasible features individually; check each off after implementation and relevant verification.
-- [ ] Complete physical 160/200 Mbps 4K60, sustained HDR10, and stereo/5.1/7.1 output validation.
+- [x] 🟢 Back/Menu opens a stream dialog instead of immediately leaving; offer Continue, Stream settings, Disconnect, and Disconnect and close app (with confirmation).
+- [ ] 🔴 Validate the new dialog on Apple TV: repeated Back, settings round trips, controller/keyboard input, both exit actions, and restored app focus.
+- [x] 🟢 Bring live bitrate and performance statistics directly into the stream menu, with host rejection feedback and safe focus navigation.
+- [x] 🟢 Add menu shortcuts for Alt+Tab, Windows, special keys, and explicit tvOS text input; release all pressed keys when dismissed or disconnected.
+- [ ] 🔴 Investigate in-session resolution and HDR changes with Foundation Sunshine; expose only negotiated support, otherwise clearly require reconnecting.
+- [ ] 🔴 Investigate host keyboard and Windows DPI controls; add only if the existing host protocol provides a reliable supported operation.
+- [x] 🟢 Add a video capability report with actual display mode, decoder support, HDR status, and negotiated stream format.
+- [x] 🟢 Add client-side adaptive bitrate with explicit bounds, network-frame-loss/latency feedback, manual override, and host capability checks.
+- [x] 🟢 Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
+- [ ] 🔴 Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
+- [x] 🟢 Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
+- [ ] 🔴 Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
+- [ ] 🔴 Add controller shortcut testing, dead-zone/center calibration and mouse-mode controls where GameController permits.
+- [ ] 🔴 Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.
+- [ ] 🔴 Define foreground/background reconnect behavior within tvOS lifecycle limits; never promise continuous background video decoding.
+- [ ] 🔴 Add versioned settings backup/restore through a tvOS-compatible transfer flow; exclude pairing secrets and do not copy Android folder access.
+- [ ] 🔴 Add an in-app remote-operation guide, diagnostics and project/license links; do not show unavailable downloads or paid unlocks.
+- [ ] 🔴 Investigate host render scaling, monitor selection and input-only sessions against existing Foundation Sunshine negotiation.
+- [ ] 🔴 Investigate microphone forwarding using supported tvOS capture routes and the existing host extension; keep unavailable until verified.
+- [ ] 🔴 Validate the existing native interpolation path for supported Apple hardware; do not load Windows Lossless Scaling DLLs or claim Android parity.
+- [ ] 🔴 Evaluate additional Moonlight V+ Android screenshots and add feasible features individually; check each off after implementation and relevant verification.
+- [ ] 🔴 Complete physical 160/200 Mbps 4K60, sustained HDR10, and stereo/5.1/7.1 output validation.
 
 See the [Android menu feasibility review](docs/ANDROID_MENU_ROADMAP.md). Touch-only controls are not copied to tvOS; Dolby Vision, Atmos, and height-channel layouts remain unsupported.
 
