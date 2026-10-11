@@ -5,11 +5,13 @@ import tempfile
 source = (Path(__file__).resolve().parents[1] / 'Selene/ViewControllers/SettingsSwiftUI.swift').read_text()
 policy = source.split('private enum TVResolutionPolicy {')[1].split('\nprivate extension SettingsSession')[0]
 program = 'import Foundation\nprivate enum TVResolutionPolicy {' + policy + r'''
-for (value, w, h) in [(0,1280,720), (1,1920,1080), (6,2560,1440), (7,3200,1800), (2,3840,2160)] {
+for (value, w, h) in [(8,640,360), (9,854,480), (0,1280,720), (1,1920,1080), (6,2560,1440), (7,3200,1800), (2,3840,2160)] {
     let size = TVResolutionPolicy.preset(value)!
     assert(size.width == w && size.height == h)
     assert(TVResolutionPolicy.selection(width: w, height: h) == value)
 }
+assert(TVResolutionPolicy.parse(width: "640", height: "360", supportsHEVC: false) != nil)
+assert(TVResolutionPolicy.parse(width: "854", height: "480", supportsHEVC: false) != nil)
 assert(TVResolutionPolicy.preset(4) == nil)
 assert(TVResolutionPolicy.selection(width: 2560, height: 1080) == 5)
 assert(TVResolutionPolicy.parse(width: " 3200 ", height: "1800", supportsHEVC: true) != nil)
@@ -18,7 +20,7 @@ for (w, h) in [("2561","1440"), ("2560","1441"), ("3842","2160"), ("3840","2162"
     assert(TVResolutionPolicy.parse(width: w, height: h, supportsHEVC: true) == nil)
 }
 assert(TVResolutionPolicy.parse(width: "2560", height: "1440", supportsHEVC: false) == nil)
-print("PASS: 720p/1080p/2K/3K/4K choices, custom dimensions, hardware limits and invalid input")
+print("PASS: 360p/480p/720p/1080p/2K/3K/4K choices, custom dimensions, hardware limits and invalid input")
 '''
 with tempfile.TemporaryDirectory() as directory:
     path = Path(directory) / 'resolution.swift'

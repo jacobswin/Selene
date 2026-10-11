@@ -125,3 +125,11 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Found the tvOS storyboard referenced `SeleneNoFocusNavigationController` but no implementation existed in the source tree. Implemented that class in the compiled scene source.
 - Native Menu press handling and navigation `popViewControllerAnimated:` now route an active stream to its menu; explicit menu disconnect still uses the existing `popToRootViewControllerAnimated:` cleanup path.
 - Signed device build passed, class symbol verified in the built application, installed and relaunched on Apple TV. Attached a local console for physical-event diagnosis; no private console logs are tracked. Menu behavior remains pending physical acceptance.
+
+### 2026-10-11: low-bandwidth resolution choices and TODO scope
+
+- Added optional 360p (640 × 360) and 480p (854 × 480) choices on tvOS. Added presets persist through the existing custom-size format; existing resolution values, pairing and saved manual bitrate are preserved. Resolution changes apply on the next connection.
+- Added English, Simplified Chinese and Traditional Chinese explanations separating requested FPS, received FPS and display refresh. A higher request does not increase physical display refresh.
+- Resolution policy tests passed for all presets, custom dimensions and invalid input; language selection and three-language coverage tests passed. Signed Apple TV Debug build passed.
+- Physical low-resolution playback and settings visual acceptance remain unverified. Simulator streaming was not tested. These choices do not establish network throughput or decoding-performance guarantees.
+- English and Chinese README TODO lists now track feature implementation and bug fixes only. Removed the completed audio-cleanup entry from both lists; the audio cleanup remains implemented and its earlier verification records are retained.

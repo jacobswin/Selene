@@ -29,9 +29,8 @@ The current stream path does **not support Dolby Vision or Dolby Atmos**. HDR10 
 
 ## TODO
 
-Checked items are implemented; physical streaming validation is tracked separately. Android reference features are reviewed for tvOS and the existing Sunshine protocol before being added here.
+This checklist tracks feature implementation and bug fixes. Cleanup and feature removals are recorded in the verification notes. Checked items are implemented; physical streaming validation is tracked separately. Android reference features are reviewed for tvOS and the existing Sunshine protocol before being added here.
 
-- [x] Show one Stereo choice and remove unsupported 2.1 / 5.1.2 / 7.1.4 placeholders on tvOS; read legacy stereo preferences.
 - [x] Back/Menu opens a stream dialog instead of immediately leaving; offer Continue, Stream settings, Disconnect, and Disconnect and close app (with confirmation).
 - [ ] Validate the new dialog on Apple TV: repeated Back, settings round trips, controller/keyboard input, both exit actions, and restored app focus.
 - [x] Bring live bitrate and performance statistics directly into the stream menu, with host rejection feedback and safe focus navigation.
@@ -42,7 +41,7 @@ Checked items are implemented; physical streaming validation is tracked separate
 - [x] Add client-side adaptive bitrate with explicit bounds, network-frame-loss/latency feedback, manual override, and host capability checks.
 - [x] Add display fitting, alignment and horizontal/vertical offset controls, with reset and no change to requested stream dimensions.
 - [ ] Add optional compact app covers and configurable menu shortcut visibility, retaining clear native focus.
-- [ ] Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
+- [x] Add optional low-bandwidth resolution choices and explain requested FPS versus actual display refresh rate.
 - [ ] Review existing frame pacing, decoder queue and color-range controls for tvOS; document their effect and validate defaults.
 - [ ] Add controller shortcut testing, dead-zone/center calibration and mouse-mode controls where GameController permits.
 - [ ] Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.

@@ -26300,6 +26300,94 @@
           }
         }
       }
+    },
+    "360p (640 × 360)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p (640 × 360)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p（640 × 360）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p（640 × 360）"
+          }
+        }
+      }
+    },
+    "480p (854 × 480)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "480p (854 × 480)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "480p（854 × 480）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "480p（854 × 480）"
+          }
+        }
+      }
+    },
+    "360p and 480p trade detail for easier decoding. Resolution changes apply on the next connection and do not change your saved bitrate.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p and 480p trade detail for easier decoding. Resolution changes apply on the next connection and do not change your saved bitrate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p 和 480p 降低画面细节与解码负担。分辨率在下次连接时生效，不会改变已保存的码率。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "360p 和 480p 降低畫面細節與解碼負擔。解析度於下次連線時生效，不會變更已儲存的位元速率。"
+          }
+        }
+      }
+    },
+    "Requested FPS is sent to the host. Actual received FPS and display refresh can differ; see Capability report. A higher requested FPS does not increase the display's physical refresh rate.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested FPS is sent to the host. Actual received FPS and display refresh can differ; see Capability report. Higher FPS cannot exceed the display's physical refresh rate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求帧率会发送给主机；实际接收帧率与显示刷新率可能不同，请查看能力报告。较高的请求帧率不会提高显示器的物理刷新率。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請求幀率會傳送給主機；實際接收幀率與顯示更新率可能不同，請查看能力報告。較高的請求幀率不會提高顯示器的實體更新率。"
+          }
+        }
+      }
     }
   },
   "version": "1.1"

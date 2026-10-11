@@ -2274,6 +2274,8 @@ final class SettingsSession: NSObject, ObservableObject {
     var resolutionOptions: [SettingsPickerOption<Int>] {
         if PublicUtils.isTVOS {
             return [
+                .init(value: 8, title: "360p (640 × 360)".localized),
+                .init(value: 9, title: "480p (854 × 480)".localized),
                 .init(value: 0, title: "720p".localized),
                 .init(value: 1, title: "1080p".localized),
                 .init(value: 6, title: "2K (2560 × 1440)", isEnabled: supportsHEVC),
@@ -7848,6 +7850,8 @@ private enum TVBitratePolicy {
 private enum TVResolutionPolicy {
     static func preset(_ value: Int) -> (width: Int, height: Int)? {
         switch value {
+        case 8: return (640, 360)
+        case 9: return (854, 480)
         case 0: return (1280, 720)
         case 1: return (1920, 1080)
         case 6: return (2560, 1440)
@@ -7857,7 +7861,7 @@ private enum TVResolutionPolicy {
         }
     }
     static func selection(width: Int, height: Int) -> Int {
-        for value in [0, 1, 6, 7, 2] {
+        for value in [8, 9, 0, 1, 6, 7, 2] {
             if let size = preset(value), size.width == width, size.height == height { return value }
         }
         return 5
@@ -7877,7 +7881,7 @@ private extension SettingsSession {
 
     func applyTVResolution(_ value: Int) {
         guard let size = TVResolutionPolicy.preset(value) else { return }
-        if value == 6 || value == 7 {
+        if [6, 7, 8, 9].contains(value) {
             customWidth = size.width; customHeight = size.height
             itemRegistry.usesCustomResolution.value = true
             itemRegistry.resolution.value = 1
@@ -7886,7 +7890,7 @@ private extension SettingsSession {
             itemRegistry.resolution.value = value
             lastPresetResolution = value
         }
-        // Keep the user's bitrate. Persist 2K/3K through the existing custom-size format.
+        // Keep the user's bitrate. Persist added presets through the existing custom-size format.
         persistSettings()
     }
 
@@ -8318,7 +8322,8 @@ private final class TVNativeSettingsTableController: UITableViewController {
             setValue(store, !value(store)); store.markGameProfileItemChanged(item)
             item.onValueChanged?(store); store.persistSettings()
         case let .picker(value, _, options, _):
-            let alert = UIAlertController(title: item.id.titleKey.localized, message: nil, preferredStyle: .actionSheet)
+            let explanation = item.id == .frameRate ? "Requested FPS is sent to the host. Actual received FPS and display refresh can differ; see Capability report. A higher requested FPS does not increase the display's physical refresh rate.".localized : item.id == .resolution ? "360p and 480p trade detail for easier decoding. Resolution changes apply on the next connection and do not change your saved bitrate.".localized : nil
+            let alert = UIAlertController(title: item.id.titleKey.localized, message: explanation, preferredStyle: .actionSheet)
             for option in options(store) {
                 let selected = item.id == .resolution ? store.tvResolutionSelection : value(store)
                 let title = option.title + (option.value == selected ? " ✓" : "") + (option.isEnabled || option.value < 0 ? "" : " (device unsupported)".localized)
