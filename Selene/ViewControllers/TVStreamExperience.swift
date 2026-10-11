@@ -4,6 +4,7 @@ import Foundation
 import AVFoundation
 import VideoToolbox
 import GameController
+import CoreImage
 
 // Navigation, responder and gesture fallbacks may see the same physical press.
 struct TVBackGate {
@@ -38,7 +39,15 @@ struct TVBackGate {
     }
 }
 
-final class TVClientSettingsController: UITableViewController {
+class TVDarkTableController: UITableViewController {
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        guard let header = view as? UITableViewHeaderFooterView else { return }
+        header.textLabel?.textColor = .white
+        header.contentView.backgroundColor = UIColor(white:0.04,alpha:1)
+    }
+}
+
+final class TVClientSettingsController: TVDarkTableController {
     typealias Row = (title: String, value: () -> String, action: () -> Void)
     private var groups: [(String, [Row])] = []
     override func viewDidLoad() {
@@ -58,7 +67,8 @@ final class TVClientSettingsController: UITableViewController {
             ("Controller test", { "Buttons and sticks".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVControllerTestController()), animated: true) }),
             ("Left stick deadzone", { "\(TVClientPreferences.deadzone("left"))%" }, { [weak self] in self?.chooseDeadzone("left") }),
             ("Right stick deadzone", { "\(TVClientPreferences.deadzone("right"))%" }, { [weak self] in self?.chooseDeadzone("right") })]
-        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock]), ("Controller", controller)]
+        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock]), ("Controller", controller), ("Help and diagnostics", [
+            ("Help and diagnostics", { "Remote guide and stream status".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVHelpController()), animated:true) })])]
     }
     private func chooseDeadzone(_ side: String) {
         let alert = UIAlertController(title: (side == "left" ? "Left stick deadzone" : "Right stick deadzone").localized, message: "Select a radial deadzone. Zero preserves existing input behavior.".localized, preferredStyle: .actionSheet)
@@ -93,7 +103,7 @@ final class TVClientSettingsController: UITableViewController {
     }
 }
 
-final class TVControllerTestController: UITableViewController {
+final class TVControllerTestController: TVDarkTableController {
     private var timer: Timer?
     private weak var support: ControllerSupport?
     private var wasSuspended = true
@@ -152,6 +162,8 @@ final class TVControllerTestController: UITableViewController {
     static let shared = SeleneTVSession()
     private(set) weak var stream: StreamFrameViewController?
     private(set) var targetKbps = 0
+    private(set) var requestedCodec = 0
+    private(set) var initialKbps = 0
     private(set) var pending = false
     fileprivate var generation = UUID()
     private let requests = DispatchQueue(label: "Selene.stream.bitrate")
@@ -163,6 +175,9 @@ final class TVControllerTestController: UITableViewController {
     @nonobjc lazy var adaptive = TVAdaptiveController(session: self)
 
     func begin(_ controller: StreamFrameViewController) {
+        guard stream !== controller else { return }
+        requestedCodec = Int(DataManager().getSettings()?.preferredCodec ?? 0)
+        initialKbps = Int(controller.streamConfig.bitRate)
         generation = UUID(); stream = controller
         targetKbps = Int(controller.streamConfig.bitRate)
         pending = false; lastMessage = ""; returningFromSettings = false; nextFocus = "continue"
@@ -415,6 +430,10 @@ final class TVStreamMenuController: UIViewController {
             }
         }
     }
+    private func afterAlert(_ action: @escaping () -> Void) {
+        if let alert = presentedViewController as? UIAlertController { alert.dismiss(animated:true, completion:action) }
+        else { DispatchQueue.main.async(execute:action) }
+    }
     private func chooseKeys() {
         session.nextFocus = "keys"
         let alert = UIAlertController(title: "Keyboard shortcuts".localized, message: nil, preferredStyle: .alert)
@@ -423,7 +442,7 @@ final class TVStreamMenuController: UIViewController {
         }
         if TVClientPreferences.shortcutVisible("text") { alert.addAction(UIAlertAction(title: "Text input".localized, style: .default) { [weak self] _ in
             guard let self else { return }
-            self.dismiss(animated: false) {
+            self.afterAlert {
                 let input = TVStreamTextInputController { [weak self] text in
                     guard let self, self.session.stream != nil else { return }
                     text.withCString { _ = LiSendUtf8TextEvent($0, UInt32(text.utf8.count)) }
@@ -434,7 +453,7 @@ final class TVStreamMenuController: UIViewController {
         })
         }
         alert.addAction(UIAlertAction(title: "Special keys".localized, style: .default) { [weak self] _ in
-            guard let self else { return }; self.dismiss(animated: false) { self.chooseSpecialKeys() }
+            guard let self else { return }; self.afterAlert { self.chooseSpecialKeys() }
         })
         alert.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel)); present(alert, animated: true)
     }
@@ -506,7 +525,8 @@ final class TVStreamTextInputController: UIViewController {
 }
 struct TVCapabilityValue {
     static func numeric(_ value: Double?, format: String, active: Bool, unknown: String, notStarted: String) -> String {
-        guard let value, value.isFinite, value >= 0 else { return active ? unknown : notStarted }
+        guard active else { return notStarted }
+        guard let value, value.isFinite, value >= 0 else { return unknown }
         return String(format: format, value)
     }
 }
@@ -530,11 +550,11 @@ struct TVStreamCapabilitySnapshot {
         let acceleration = (values["hardwareAcceleration"] as? NSNumber).map { $0.boolValue ? "Yes".localized : "No".localized } ?? (session.stream == nil ? notStarted : unknown)
         let hdr = (values["hdr"] as? NSNumber).map { $0.boolValue ? "HDR10" : "SDR" } ?? (session.stream == nil ? notStarted : unknown)
         let size: String
-        if let w = values["width"] as? NSNumber, let h = values["height"] as? NSNumber { size = "\(w.intValue) × \(h.intValue)" }
+        if let w = values["width"] as? NSNumber, let h = values["height"] as? NSNumber, w.intValue > 0, h.intValue > 0 { size = "\(w.intValue) × \(h.intValue)" }
         else { size = session.stream == nil ? notStarted : unknown }
         let requestedWidth = session.stream.map { Int($0.streamConfig.width) } ?? settings?.width.intValue ?? 0
         let requestedHeight = session.stream.map { Int($0.streamConfig.height) } ?? settings?.height.intValue ?? 0
-        let codec = [0:"Automatic",1:"H.264",2:"HEVC",3:"AV1"][Int(settings?.preferredCodec ?? 0)] ?? unknown
+        let codec = ([0:"Automatic",1:"H.264",2:"HEVC",3:"AV1"][session.stream == nil ? Int(settings?.preferredCodec ?? 0) : session.requestedCodec] ?? "Unknown").localized
         let audio = AVAudioSession.sharedInstance()
         return TVStreamCapabilitySnapshot(sections: [
             ("Device capabilities".localized, [
@@ -549,19 +569,23 @@ struct TVStreamCapabilitySnapshot {
                 ("Resolution".localized, "\(requestedWidth) × \(requestedHeight)"),
                 ("Frame Rate".localized, "\(session.stream.map { Int($0.streamConfig.frameRate) } ?? settings?.framerate.intValue ?? 0) FPS"),
                 ("Preferred Codec".localized, codec),
-                ("HDR".localized, (settings?.enableHdr ?? false) ? "On".localized : "Off".localized),
-                ("Manual bitrate".localized, String(format: "%.1f Mbps", Double(settings?.bitrate.intValue ?? 0)/1000))]),
+                ("HDR".localized, (session.stream?.streamConfig.enableHdr ?? settings?.enableHdr ?? false) ? "On".localized : "Off".localized),
+                ("Initial requested bitrate".localized, String(format: "%.1f Mbps", Double(session.stream == nil ? settings?.bitrate.intValue ?? 0 : session.initialKbps)/1000)),
+                ("Saved manual bitrate".localized, String(format:"%.1f Mbps",Double(settings?.bitrate.intValue ?? 0)/1000)),
+                ("Current session target bitrate".localized, session.stream == nil ? notStarted : String(format:"%.1f Mbps",Double(session.targetKbps)/1000))]),
             ("Negotiated stream".localized, [
                 ("Resolution".localized, size),
                 ("Negotiated codec".localized, values["codec"] as? String ?? (session.stream == nil ? notStarted : unknown)),
-                ("Decoder".localized, session.stream == nil ? notStarted : values["decoder"] as? String ?? unknown),
+                ("Video decode/output path".localized, session.stream == nil ? notStarted : values["decoder"] as? String ?? unknown),
                 ("Hardware acceleration in use".localized, acceleration),
                 ("HDR".localized, hdr),
                 ("Received frame rate".localized, observed("receivedFPS", format:"%.2f FPS")),
                 ("Decode time".localized, observed("decodeMS", format:"%.2f ms")),
                 ("Render frame drops".localized, observed("renderDroppedFrames", format:"%.0f")),
                 ("Negotiated audio channels".localized, observed("audioChannels", format:"%.0f")),
-                ("Received bitrate".localized, observed("receivedMbps", format:"%.1f Mbps"))])])
+                ("Received bitrate".localized, observed("receivedMbps", format:"%.1f Mbps")),
+                ("Network frame drops".localized, observed("networkDroppedFrames", format:"%.0f")),
+                ("Network RTT".localized, observed("rttMS", format:"%.1f ms"))])])
     }
 }
 
@@ -575,8 +599,9 @@ private final class TVCapabilityCell: UITableViewCell {
     }
 }
 
-final class TVStreamCapabilityController: UITableViewController {
+final class TVStreamCapabilityController: TVDarkTableController {
     private var snapshot = TVStreamCapabilitySnapshot.capture()
+    private var refreshTimer: Timer?
     override func viewDidLoad() {
         super.viewDidLoad(); title = "Capability report".localized
         tableView.backgroundColor = UIColor(white: 0.04, alpha: 1)
@@ -584,6 +609,17 @@ final class TVStreamCapabilityController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done".localized, style: .done, target:self, action:#selector(close))
     }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); snapshot = .capture(); tableView.reloadData() }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        refreshTimer = Timer.scheduledTimer(withTimeInterval:1, repeats:true) { [weak self] _ in
+            guard let self else { return }; self.snapshot = .capture()
+            for path in self.tableView.indexPathsForVisibleRows ?? [] {
+                self.tableView.cellForRow(at:path)?.detailTextLabel?.text = self.snapshot.sections[path.section].1[path.row].1
+            }
+        }
+    }
+    override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); refreshTimer?.invalidate(); refreshTimer = nil }
+
     override func numberOfSections(in tableView: UITableView) -> Int { snapshot.sections.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { snapshot.sections[section].1.count }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { snapshot.sections[section].0 }
@@ -605,6 +641,80 @@ final class TVStreamCapabilityController: UITableViewController {
     }
 }
 
+
+final class TVHelpController: TVDarkTableController {
+    private let guides: [(String, [String])] = [
+        ("Siri Remote", ["Select a PC to open its apps. Use the arrows or swipe to move focus, and Select to open the focused item.", "During streaming, Back opens the stream menu; Back again resumes. In an input dialog, Back returns one level. Disconnect keeps the PC app running; Disconnect and close app requires confirmation.", "Use Stream settings to adjust options. Resolution and HDR changes require reconnecting. Exact bitrate entry accepts 0.5–800 Mbps; host acceptance does not guarantee actual throughput."]),
+        ("Controller", ["Pair your controller in Apple TV settings. App pages use native tvOS navigation. Controller test displays buttons, combinations and sticks without forwarding them to the PC.", "Controller mouse uses the right stick to move, A/B for left/right click and the left stick to scroll. Enable it in the stream menu; it starts off each session. Back/Menu opens the stream menu."]),
+        ("Pairing", ["Install and start Sunshine on your PC. Keep Apple TV and the PC on a reachable network, select or add the PC in Selene, then enter the displayed PIN in Sunshine. Never publish pairing codes or keys."]),
+        ("Troubleshooting", ["If a PC is offline, check its power, network and Sunshine service. For a black screen, reconnect with SDR and a supported codec; AV1 requires hardware decoding.", "For stutter, compare network frame drops and RTT with decode/render statistics. Reduce bitrate or resolution when appropriate. The 800 Mbps limit is configurable, not a stability promise.", "For missing sound, check Apple TV audio settings and the TV/receiver route. This stream path supports Stereo, 5.1 and 7.1 when available, not Dolby Atmos or height channels."])
+    ]
+    override func viewDidLoad() {
+        super.viewDidLoad(); title = "Help and diagnostics".localized
+        tableView.backgroundColor = UIColor(white:0.04, alpha:1)
+        tableView.rowHeight = UITableView.automaticDimension; tableView.estimatedRowHeight = 180
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done".localized, style:.done, target:self, action:#selector(close))
+    }
+    override func numberOfSections(in tableView: UITableView) -> Int { guides.count + 1 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section < guides.count ? guides[section].1.count : 4 }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section < guides.count ? guides[section].0.localized : "Diagnostics and references".localized }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = TVCapabilityCell(style:.subtitle,reuseIdentifier:nil)
+        cell.backgroundColor = UIColor(white:0.09,alpha:1); cell.textLabel?.textColor = .white
+        cell.textLabel?.font = .systemFont(ofSize:25); cell.textLabel?.numberOfLines = 0
+        if indexPath.section < guides.count { cell.textLabel?.text = guides[indexPath.section].1[indexPath.row].localized }
+        else { cell.textLabel?.text = ["Capability report", "Project on GitHub", "Issue reporting", "Open-source licenses"][indexPath.row].localized; cell.accessoryType = .disclosureIndicator }
+        return cell
+    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard indexPath.section == guides.count else { return }
+        if indexPath.row == 0 { present(UINavigationController(rootViewController: TVStreamCapabilityController()),animated:true); return }
+        let entries = [
+            ("Project on GitHub", "https://github.com/jacobswin/Selene", "Scan with your phone to open the project."),
+            ("Issue reporting", "https://github.com/jacobswin/Selene/issues", "Include device and host versions, stream settings and reproduction steps. Remove private addresses, pairing codes and account details before sharing."),
+            ("Open-source licenses", "https://github.com/jacobswin/Selene/blob/main/LICENSE.txt", "Selene is GPLv3. Upstream copyright notices and dependency licenses are retained in the repository. No diagnostics are uploaded automatically.")]
+        let entry = entries[indexPath.row-1]
+        present(TVReferenceController(title:entry.0.localized, url:entry.1, explanation:entry.2.localized),animated:true)
+    }
+    @objc private func close() { dismiss(animated:true) }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { close(); return }; super.pressesEnded(presses,with:event)
+    }
+}
+
+final class TVReferenceController: UIViewController {
+    private let referenceTitle: String, url: String, explanation: String
+    init(title: String, url: String, explanation: String) {
+        referenceTitle=title; self.url=url; self.explanation=explanation
+        super.init(nibName:nil,bundle:nil)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+    override func viewDidLoad() {
+        super.viewDidLoad(); view.backgroundColor = UIColor(white:0.04,alpha:1)
+        let image = UIImageView(); image.contentMode = .scaleAspectFit
+        image.widthAnchor.constraint(equalToConstant:320).isActive=true
+        image.heightAnchor.constraint(equalToConstant:320).isActive=true
+        if let filter = CIFilter(name:"CIQRCodeGenerator") {
+            filter.setValue(Data(url.utf8),forKey:"inputMessage")
+            filter.setValue("M",forKey:"inputCorrectionLevel")
+            if let output=filter.outputImage?.transformed(by:CGAffineTransform(scaleX:10,y:10)), let pixels=CIContext().createCGImage(output,from:output.extent) { image.image=UIImage(cgImage:pixels) }
+        }
+        image.backgroundColor = .white; image.layer.magnificationFilter = .nearest
+        let close = TVStreamButton("Done".localized) { [weak self] in self?.dismiss(animated:true) }
+        let stack=UIStackView(arrangedSubviews:[tvStreamLabel(referenceTitle,size:38),tvStreamLabel(explanation),image,tvStreamLabel(url,size:21),close]);stack.axis = .vertical; stack.spacing=25
+        stack.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(stack)
+        NSLayoutConstraint.activate([stack.centerXAnchor.constraint(equalTo:view.centerXAnchor),stack.centerYAnchor.constraint(equalTo:view.centerYAnchor),stack.widthAnchor.constraint(equalTo:view.widthAnchor,multiplier:0.65)])
+    }
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { return }; super.pressesBegan(presses,with:event)
+    }
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if presses.contains(where:{$0.type == .menu}) { dismiss(animated:true); return }; super.pressesEnded(presses,with:event)
+    }
+}
 
 // Pure geometry shared by rendering and absolute pointer conversion.
 struct TVStreamGeometry {

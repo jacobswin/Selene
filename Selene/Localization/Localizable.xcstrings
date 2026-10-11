@@ -15899,24 +15899,23 @@
       }
     },
     "Pairing": {
-      "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在配对"
+            "value": "配对"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在配對"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在配對"
+            "value": "配對"
           }
         }
       }
@@ -26934,6 +26933,622 @@
           "stringUnit": {
             "state": "translated",
             "value": "測試輸入只在 Apple TV 顯示，不傳送到電腦。"
+          }
+        }
+      }
+    },
+    "Initial requested bitrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial requested bitrate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始请求码率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始請求碼率"
+          }
+        }
+      }
+    },
+    "Saved manual bitrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved manual bitrate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的手动码率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已儲存的手動碼率"
+          }
+        }
+      }
+    },
+    "Current session target bitrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current session target bitrate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话目标码率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前工作階段目標碼率"
+          }
+        }
+      }
+    },
+    "Video decode/output path": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video decode/output path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "视频解码与输出路径"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "影片解碼與輸出路徑"
+          }
+        }
+      }
+    },
+    "Network frame drops": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network frame drops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络丢帧"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網路掉幀"
+          }
+        }
+      }
+    },
+    "Network RTT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network RTT"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络往返延迟"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網路往返延遲"
+          }
+        }
+      }
+    },
+    "Help and diagnostics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help and diagnostics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助与诊断"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "說明與診斷"
+          }
+        }
+      }
+    },
+    "Remote guide and stream status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote guide and stream status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遥控器指南与串流状态"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遙控器指南與串流狀態"
+          }
+        }
+      }
+    },
+    "Siri Remote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siri Remote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siri 遥控器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siri 遙控器"
+          }
+        }
+      }
+    },
+    "Troubleshooting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troubleshooting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故障排查"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "疑難排解"
+          }
+        }
+      }
+    },
+    "Diagnostics and references": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics and references"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断与参考"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "診斷與參考"
+          }
+        }
+      }
+    },
+    "Project on GitHub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project on GitHub"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 專案"
+          }
+        }
+      }
+    },
+    "Issue reporting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issue reporting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问题反馈"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "問題回報"
+          }
+        }
+      }
+    },
+    "Open-source licenses": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-source licenses"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开源许可证"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開源授權"
+          }
+        }
+      }
+    },
+    "Select a PC to open its apps. Use the arrows or swipe to move focus, and Select to open the focused item.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a PC to open its apps. Use the arrows or swipe to move focus, and Select to open the focused item."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择电脑以打开应用列表。使用方向键或滑动移动焦点，按选择键打开当前项目。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇電腦以開啟應用程式清單。使用方向鍵或滑動移動焦點，按選取鍵開啟目前項目。"
+          }
+        }
+      }
+    },
+    "During streaming, Back opens the stream menu; Back again resumes. In an input dialog, Back returns one level. Disconnect keeps the PC app running; Disconnect and close app requires confirmation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "During streaming, Back opens the stream menu; Back again resumes. In an input dialog, Back returns one level. Disconnect keeps the PC app running; Disconnect and close app requires confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流时按返回打开菜单，再按返回恢复串流。在输入框中返回只退出当前层。断开串流保留电脑应用运行；断开并关闭应用需要确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流時按返回開啟選單，再按返回恢復串流。在輸入框中返回只退出目前層。中斷串流保留電腦應用程式執行；中斷並關閉應用程式需要確認。"
+          }
+        }
+      }
+    },
+    "Use Stream settings to adjust options. Resolution and HDR changes require reconnecting. Exact bitrate entry accepts 0.5–800 Mbps; host acceptance does not guarantee actual throughput.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Stream settings to adjust options. Resolution and HDR changes require reconnecting. Exact bitrate entry accepts 0.5–800 Mbps; host acceptance does not guarantee actual throughput."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在串流设置中调整选项。分辨率和 HDR 更改需要重新连接。指定码率支持 0.5–800 Mbps；主机接受请求不代表实际吞吐达到该值。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在串流設定中調整選項。解析度和 HDR 變更需要重新連線。指定位元率支援 0.5–800 Mbps；主機接受請求不代表實際傳輸達到該值。"
+          }
+        }
+      }
+    },
+    "Pair your controller in Apple TV settings. App pages use native tvOS navigation. Controller test displays buttons, combinations and sticks without forwarding them to the PC.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair your controller in Apple TV settings. App pages use native tvOS navigation. Controller test displays buttons, combinations and sticks without forwarding them to the PC."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Apple TV 设置中配对手柄。App 页面使用 tvOS 原生导航。手柄测试显示按钮、组合键和摇杆状态，不将输入发送到电脑。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Apple TV 設定中配對手把。App 頁面使用 tvOS 原生導覽。手把測試顯示按鈕、組合鍵和搖桿狀態，不將輸入傳送到電腦。"
+          }
+        }
+      }
+    },
+    "Controller mouse uses the right stick to move, A/B for left/right click and the left stick to scroll. Enable it in the stream menu; it starts off each session. Back/Menu opens the stream menu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controller mouse uses the right stick to move, A/B for left/right click and the left stick to scroll. Enable it in the stream menu; it starts off each session. Back/Menu opens the stream menu."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手柄鼠标用右摇杆移动，A/B 为左右键，左摇杆上下滚动。从串流菜单开启，每次会话默认关闭。返回或菜单键打开串流菜单。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手把滑鼠用右搖桿移動，A/B 為左右鍵，左搖桿上下捲動。從串流選單開啟，每次工作階段預設關閉。返回或選單鍵開啟串流選單。"
+          }
+        }
+      }
+    },
+    "Install and start Sunshine on your PC. Keep Apple TV and the PC on a reachable network, select or add the PC in Selene, then enter the displayed PIN in Sunshine. Never publish pairing codes or keys.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install and start Sunshine on your PC. Keep Apple TV and the PC on a reachable network, select or add the PC in Selene, then enter the displayed PIN in Sunshine. Never publish pairing codes or keys."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在电脑安装并启动 Sunshine。确保 Apple TV 与电脑网络互通，在 Selene 中选择或添加电脑，再将显示的 PIN 输入 Sunshine。不要公开配对码或密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在電腦安裝並啟動 Sunshine。確保 Apple TV 與電腦網路互通，在 Selene 中選擇或新增電腦，再將顯示的 PIN 輸入 Sunshine。不要公開配對碼或金鑰。"
+          }
+        }
+      }
+    },
+    "If a PC is offline, check its power, network and Sunshine service. For a black screen, reconnect with SDR and a supported codec; AV1 requires hardware decoding.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If a PC is offline, check its power, network and Sunshine service. For a black screen, reconnect with SDR and a supported codec; AV1 requires hardware decoding."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电脑离线时检查电源、网络与 Sunshine 服务。黑屏时使用 SDR 和支持的编码重新连接；AV1 需要硬件解码。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電腦離線時檢查電源、網路與 Sunshine 服務。黑畫面時使用 SDR 和支援的編碼重新連線；AV1 需要硬體解碼。"
+          }
+        }
+      }
+    },
+    "For stutter, compare network frame drops and RTT with decode/render statistics. Reduce bitrate or resolution when appropriate. The 800 Mbps limit is configurable, not a stability promise.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For stutter, compare network frame drops and RTT with decode/render statistics. Reduce bitrate or resolution when appropriate. The 800 Mbps limit is configurable, not a stability promise."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卡顿时对比网络丢帧、往返延迟与解码及渲染统计，必要时降低码率或分辨率。800 Mbps 是配置上限，不保证稳定性能。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "頓挫時比較網路掉幀、往返延遲與解碼及算繪統計，必要時降低位元率或解析度。800 Mbps 是設定上限，不保證穩定效能。"
+          }
+        }
+      }
+    },
+    "For missing sound, check Apple TV audio settings and the TV/receiver route. This stream path supports Stereo, 5.1 and 7.1 when available, not Dolby Atmos or height channels.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For missing sound, check Apple TV audio settings and the TV/receiver route. This stream path supports Stereo, 5.1 and 7.1 when available, not Dolby Atmos or height channels."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无声音时检查 Apple TV 音频设置与电视或功放连接。本串流路径按能力提供立体声、5.1 和 7.1，不支持 Dolby Atmos 或高度声道。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無聲音時檢查 Apple TV 音訊設定與電視或擴大機連接。本串流路徑依能力提供立體聲、5.1 和 7.1，不支援 Dolby Atmos 或高度聲道。"
+          }
+        }
+      }
+    },
+    "Scan with your phone to open the project.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan with your phone to open the project."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用手机扫码打开项目。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用手機掃碼開啟專案。"
+          }
+        }
+      }
+    },
+    "Include device and host versions, stream settings and reproduction steps. Remove private addresses, pairing codes and account details before sharing.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include device and host versions, stream settings and reproduction steps. Remove private addresses, pairing codes and account details before sharing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反馈时提供设备与主机版本、串流设置和复现步骤。分享前移除私人地址、配对码及账号信息。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回報時提供裝置與主機版本、串流設定和重現步驟。分享前移除私人位址、配對碼及帳號資訊。"
+          }
+        }
+      }
+    },
+    "Selene is GPLv3. Upstream copyright notices and dependency licenses are retained in the repository. No diagnostics are uploaded automatically.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selene is GPLv3. Upstream copyright notices and dependency licenses are retained in the repository. No diagnostics are uploaded automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selene 使用 GPLv3，仓库保留上游版权声明与依赖许可证。不会自动上传诊断信息。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selene 使用 GPLv3，儲存庫保留上游著作權聲明與相依授權。不會自動上傳診斷資訊。"
+          }
+        }
+      }
+    },
+    "Enter exact bitrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter exact bitrate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入指定码率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入指定位元率"
+          }
+        }
+      }
+    },
+    "Dolby Vision / Atmos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Vision / Atmos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Vision / Atmos"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Vision / Atmos"
           }
         }
       }

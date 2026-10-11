@@ -68,6 +68,12 @@ keys = ['Language', 'Follow System', 'Settings', 'Video', 'Audio', 'On', 'Device
         'HEVC: %@ · AV1: %@',
         'Requested bitrate: %.1f Mbps · Received bitrate: %.1f Mbps\nNegotiated format: %@\n%@',
         'Enter exact bitrate (Mbps)', 'AV1 unavailable', 'Retry in SDR from the main screen']
+tv_source = (ROOT / 'Selene/ViewControllers/TVStreamExperience.swift').read_text()
+keys += re.findall(r'"([^"\n]+)"\.localized', tv_source)
+for array_start, array_end in [('private let guides:', 'override func viewDidLoad()'), ('let entries = [', 'let entry = entries')]:
+    block = tv_source.split(array_start)[1].split(array_end)[0]
+    keys += [key for key in re.findall(r'"([^"\n]+)"', block) if not key.startswith('https:')]
+keys = list(dict.fromkeys(keys))
 formats = re.compile(r'%(?:\d+\$)?[-+ #0]*(?:\d+)?(?:\.\d+)?(?:ll|l|z)?[@diufFeEgGs]')
 for key in keys:
     expected = formats.findall(key)

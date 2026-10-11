@@ -9,6 +9,7 @@ assert(TVCapabilityValue.numeric(nil, format:"%.1f Mbps",active:false,unknown:"u
 for value in [Double.nan, Double.infinity, -1] {
  assert(TVCapabilityValue.numeric(value,format:"%.1f",active:true,unknown:"unknown",notStarted:"not started") == "unknown")
 }
+assert(TVCapabilityValue.numeric(59.94,format:"%.2f FPS",active:false,unknown:"unknown",notStarted:"not started") == "not started")
 assert(TVCapabilityValue.numeric(0,format:"%.0f",active:true,unknown:"unknown",notStarted:"not started") == "0")
 assert(TVCapabilityValue.numeric(59.94,format:"%.2f FPS",active:true,unknown:"unknown",notStarted:"not started") == "59.94 FPS")
 print("PASS: unavailable data, no-session state, non-finite measurements, zero values and observed FPS formatting")

@@ -12,6 +12,8 @@ An open-source game streaming client for **Apple TV**, built on the Moonlight ec
 
 ## Features
 
+- Optional compact app covers, configurable menu shortcuts, local controller input testing and independent stick deadzones.
+- In-app remote guide and diagnostics; PC locking is opt-in and disabled by default.
 - Native tvOS focus, a single host-to-app entry, and focus restoration after settings or streaming.
 - Modern two-column settings; focusing a category immediately shows its contents.
 - Resolution choices include 360p, 480p, 720p, 1080p, 2K (2560×1440), 3K (3200×1800), 4K, and custom even dimensions within device limits.
@@ -47,20 +49,22 @@ This checklist tracks feature implementation and bug fixes. Cleanup and feature 
 - 🟢 Add an optional lock-PC action after disconnecting, using balanced Win+L events and clear host failure feedback.
 - 🔴 Define foreground/background reconnect behavior within tvOS lifecycle limits; never promise continuous background video decoding.
 - 🔴 Add versioned settings backup/restore through a tvOS-compatible transfer flow; exclude pairing secrets and do not copy Android folder access.
-- 🔴 Add an in-app remote-operation guide, diagnostics and project/license links; do not show unavailable downloads or paid unlocks.
+- 🟢 Add an in-app remote-operation guide, diagnostics and project/license links; do not show unavailable downloads or paid unlocks.
 - 🔴 Investigate host render scaling, monitor selection and input-only sessions against existing Foundation Sunshine negotiation.
 - 🔴 Investigate microphone forwarding using supported tvOS capture routes and the existing host extension; keep unavailable until verified.
 - 🔴 Validate the existing native interpolation path for supported Apple hardware; do not load Windows Lossless Scaling DLLs or claim Android parity.
 - 🔴 Evaluate additional Moonlight V+ Android screenshots and add feasible features individually; check each off after implementation and relevant verification.
 - 🔴 Complete physical 160/200 Mbps 4K60, sustained HDR10, and stereo/5.1/7.1 output validation.
 
-### Next five priorities
+### Latest five implementation stages
 
-1. **Stream menu reliability:** verify Back on Apple TV, fix any remaining direct exit, and test settings round trips, input isolation and restored focus.
-2. **Compact covers and menu customization:** add an optional compact app grid and visibility controls for stream-menu shortcuts, preserving clear focus.
-3. **Lock PC after disconnect:** add an opt-in Win+L action with balanced key events and explicit failure feedback; disabled by default.
-4. **Controller controls:** add shortcut testing, stick dead-zone adjustment and mouse-mode controls within GameController capabilities.
-5. **In-app guide and diagnostics:** provide remote-operation instructions, stream diagnostics and project/license references in all three supported languages.
+1. 🟢 **Stream menu reliability:** shared duplicate-Back protection and restored menu focus. The user confirmed streaming was retained; repeated Back/settings/controller acceptance remains pending.
+2. 🟢 **Compact covers and menu customization:** optional compact app cards and six independent shortcut visibility preferences.
+3. 🟢 **Lock PC after disconnect:** disabled-by-default Win+L before explicit ordinary disconnect; reports transport delivery, not confirmed host lock.
+4. 🟢 **Controller controls:** local input test, independent 0–30% radial stick deadzones and session-only mouse mode.
+5. 🟢 **In-app guide and diagnostics:** three-language remote/pairing/troubleshooting help, live capability report and QR links to the project, feedback and GPLv3 license.
+
+🔴 Physical acceptance of the new grid, shortcut visibility, Windows lock, controller mouse and three-language help remains pending; see the verification record.
 
 See the [Android menu feasibility review](docs/ANDROID_MENU_ROADMAP.md). Touch-only controls are not copied to tvOS; Dolby Vision, Atmos, and height-channel layouts remain unsupported.
 

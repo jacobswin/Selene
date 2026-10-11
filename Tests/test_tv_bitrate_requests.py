@@ -2,6 +2,7 @@
 from pathlib import Path
 import subprocess,tempfile
 source=(Path(__file__).resolve().parents[1]/'Selene/ViewControllers/TVStreamExperience.swift').read_text()
+gate='struct TVBackGate {'+source.split('struct TVBackGate {')[1].split('@objcMembers final class TVClientPreferences')[0]
 core=source.split('@objcMembers final class SeleneTVSession: NSObject {')[1].split('    @objc(showMenuFrom:)')[0]
 program=r'''
 import Foundation
@@ -13,11 +14,11 @@ final class Host {
  func updateRequestedBitrate(_ value: Int32) { requested = Int(value) }
 }
 final class StreamFrameViewController { let streamConfig=Config(); var mainFrameViewcontroller: Host?=Host() }
-final class Settings { var bitrate: NSNumber? }
-final class DataManager { static let settings=Settings(); func retrieveSettings()->Settings? { Self.settings }; func saveData() {} }
+final class Settings { var preferredCodec=0; var bitrate: NSNumber? }
+final class DataManager { static let settings=Settings(); func getSettings()->Settings? { Self.settings }; func retrieveSettings()->Settings? { Self.settings }; func saveData() {} }
 final class KeyboardSupport { static func releaseAllKeys() {} }
 final class LocalizationHelper { static func localizedString(forKey: String, _ status: Int, _ bitrate: Double)->String { "rejected" } }
-'''+ 'final class SeleneTVSession: NSObject {'+core+'}\n'+r'''
+'''+ gate + 'final class SeleneTVSession: NSObject {'+core+'}\n'+r'''
 func pump(_ condition: ()->Bool) {
  let deadline=Date().addingTimeInterval(2)
  while !condition() && Date()<deadline { RunLoop.main.run(until:Date().addingTimeInterval(0.01)) }

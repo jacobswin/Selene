@@ -158,3 +158,13 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Added a session-only controller mouse toggle: right stick moves, A/B click, left stick scrolls. The selected controller does not also forward gamepad input; menu suspension, disconnect and cleanup release mouse/gamepad states. Unsupported controller input disables the menu entry.
 - Production radial mapping tests cover zero, boundaries, angle, full-range remapping and invalid values. Preferences/localization tests and signed Apple TV Debug build passed. Physical controller drift, mouse mapping, unplug and menu isolation remain unverified.
 - Implementation uses Apple's extended-gamepad profile input values: https://developer.apple.com/documentation/gamecontroller/gcextendedgamepad
+
+### 2026-10-11: stage 5 help and capability-report review
+
+- Added English/Simplified Chinese/Traditional Chinese remote, controller, pairing and troubleshooting guidance. Project, issues and GPLv3 links use locally generated QR codes; no automatic diagnostic upload or private host/pairing data is added.
+- Reviewed capability reporting after user feedback: initial codec/bitrate and live session HDR requests no longer follow subsequently saved preferences; initial, saved manual and current target bitrate are separate. Settings reload no longer resets an active session, pending requests or adaptive controller.
+- Reports refresh visible values each second without rebuilding focused cells. Decode/output path is derived from the actual rendering view and stays unknown before negotiation; device HDR capability remains separate from unknown current output format. Added network-frame-drop and RTT rows and readable native table headers.
+- Fixed nested shortcut-dialog transitions to dismiss only the alert before opening text or special keys. Input cancellation does not dismiss the underlying stream menu accidentally.
+- All 14 tvOS policy/transport/localization test scripts passed, including new session reload and inactive-report tests. Signed Apple TV Debug build passed. Physical full-suite acceptance, controller behavior, Windows lock state and help layout remain pending. Simulator streaming was not used.
+
+- Final signed build was installed successfully on the paired Apple TV after one transient development-connection reset. Installation is not physical UI or streaming acceptance.

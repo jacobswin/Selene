@@ -866,7 +866,7 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     }
     if (renderer.hardwareAcceleration) values[@"hardwareAcceleration"] = renderer.hardwareAcceleration;
     if (renderer.negotiatedHDR) values[@"hdr"] = renderer.negotiatedHDR;
-    values[@"decoder"] = _settings.renderingBackend.intValue == RENDER_METAL ? @"VideoToolbox" : @"AVSampleBufferDisplayLayer";
+    if (renderer.negotiatedSize.width > 0) values[@"decoder"] = self.metalViewController ? @"VideoToolbox / Metal" : @"AVSampleBufferDisplayLayer";
     return values;
 }
 - (double)tvReceivedMbps { return [_streamMan receivedMbps]; }
