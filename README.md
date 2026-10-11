@@ -58,6 +58,18 @@ This checklist tracks feature implementation and bug fixes. Cleanup and feature 
 
 ### Current five additions
 
+1. 🟢 **Stick center calibration:** samples two seconds of untouched input, rejects unstable/large drift and remaps each axis while preserving full travel. Calibration is scoped to a controller instance, resettable and cleared on disconnect; it is not exported.
+2. 🟢 **Controller mouse tuning:** independent 25–300% pointer and scroll speed with optional inverted scrolling; 100% preserves the original speed and gamepad mode is unchanged.
+3. 🟢 **Statistics placement:** top center or any corner, bounded by the TV safe area and independent of video layout.
+4. 🟢 **Network quality reminders:** enabled by default, optionally hidden without suppressing connection, decode or other failure alerts.
+5. 🟢 **Diagnostic QR:** a locally generated, allowlisted numeric stream snapshot and known format labels; no host names/addresses, pairing material or automatic upload.
+
+Find calibration, mouse tuning, placement and reminders under Settings → Others → TV experience. Diagnostic QR is under Help and diagnostics. New persistent preferences are included in backups; older backup codes remain readable.
+
+🔴 Physical controller/calibration feel, corner placement, quality reminders and phone QR scanning remain pending.
+
+### Second batch five additions
+
 1. 🟢 **Reconnect notice:** saved resolution, FPS, codec, HDR or range changes are compared with the connection's original request; the menu/report explains when reconnecting is needed.
 2. 🟢 **Performance guidance:** explains pacing/output-path limits, the client frame queue and full range; unsupported pacing changes are guarded and range changes require confirmation.
 3. 🟢 **Background return:** disconnects without quitting or locking the PC app; the optional reconnect prompt is off by default.

@@ -96,6 +96,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     NSTimer *_inactivityTimer;
     NSTimer *_statsUpdateTimer;
     PaddedLabel *_overlayView;
+#if TARGET_OS_TV
+    int _tvLastConnectionStatus;
+#endif
     PaddedLabel *_transientHUDView;
     ToolboxViewController* toolBoxViewController;
     uint16_t overlayLevel;
@@ -855,6 +858,7 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     [self tvApplyVideoLayout];
+    [self tvLayoutOverlay];
 }
 
 - (NSDictionary *)tvStreamMeasurements {
@@ -869,6 +873,14 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     if (renderer.negotiatedSize.width > 0) values[@"decoder"] = self.metalViewController ? @"VideoToolbox / Metal" : @"AVSampleBufferDisplayLayer";
     return values;
 }
+- (void)tvLayoutOverlay {
+    if (!_overlayView || _overlayView.hidden) return;
+    CGRect safe = UIEdgeInsetsInsetRect(self.view.bounds, self.view.safeAreaInsets);
+    safe = CGRectInset(safe, 12, 12);
+    NSInteger position = _statsUpdateTimer ? TVClientPreferences.statsPosition : 0;
+    _overlayView.frame = [TVOverlayPlacement frame:safe size:_overlayView.bounds.size position:position];
+}
+- (void)tvRefreshQualityWarning { [self connectionStatusUpdate:_tvLastConnectionStatus]; }
 - (double)tvReceivedMbps { return [_streamMan receivedMbps]; }
 - (void)tvSetStats:(NSInteger)level {
     _settings.statsOverlayEnabled = level != 0;
@@ -884,6 +896,7 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         _statsUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateStatsOverlay) userInfo:nil repeats:YES];
     }
     [self updateStatsOverlay];
+    if (!level) [self tvRefreshQualityWarning];
 }
 
 - (void)controllerPauseButtonPressed:(id)sender { [self showTVStreamMenu]; }
@@ -1464,6 +1477,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         [_overlayView sizeToFit];
         [_overlayView setCenter:CGPointMake(self.view.frame.size.width / 2, (4 + (_overlayView.frame.size.height / 2)))];
         [_overlayView setHidden:NO];
+#if TARGET_OS_TV
+        [self tvLayoutOverlay];
+#endif
     }
     else {
         [_overlayView setHidden:YES];
@@ -2084,12 +2100,15 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 - (void)connectionStatusUpdate:(int)status {
     Log(LOG_W, @"Connection status update: %d", status);
 
-    // The stats overlay takes precedence over these warnings
-    if (_statsUpdateTimer != nil) {
-        return;
-    }
-    
     dispatch_async(dispatch_get_main_queue(), ^{
+#if TARGET_OS_TV
+        self->_tvLastConnectionStatus = status;
+#endif
+        // Quality reminders are optional; connection failures use separate alerts.
+        if (self->_statsUpdateTimer != nil) return;
+#if TARGET_OS_TV
+        if (!TVClientPreferences.qualityWarnings) { [self updateOverlayText:nil]; return; }
+#endif
         switch (status) {
             case CONN_STATUS_OKAY:
                 [self updateOverlayText:nil];

@@ -25671,13 +25671,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "左上"
+            "value": "左上角"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "左上"
+            "value": "左上角"
           }
         }
       }
@@ -25715,13 +25715,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "右上"
+            "value": "右上角"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "右上"
+            "value": "右上角"
           }
         }
       }
@@ -25803,13 +25803,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "左下"
+            "value": "左下角"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "左下"
+            "value": "左下角"
           }
         }
       }
@@ -25847,13 +25847,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "右下"
+            "value": "右下角"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "右下"
+            "value": "右下角"
           }
         }
       }
@@ -28538,6 +28538,424 @@
           "stringUnit": {
             "state": "translated",
             "value": "用手機掃碼複製備份代碼，儲存後可用於還原。不包含配對金鑰或電腦位址。"
+          }
+        }
+      }
+    },
+    "Stick center calibration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stick center calibration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摇杆中心校准"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搖桿中心校準"
+          }
+        }
+      }
+    },
+    "This connection only": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅当前连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅目前連線"
+          }
+        }
+      }
+    },
+    "Controller mouse speed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controller mouse speed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手柄鼠标速度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手把滑鼠速度"
+          }
+        }
+      }
+    },
+    "Controller scroll speed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controller scroll speed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手柄滚动速度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手把捲動速度"
+          }
+        }
+      }
+    },
+    "Invert controller scrolling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invert controller scrolling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反转手柄滚动方向"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反轉手把捲動方向"
+          }
+        }
+      }
+    },
+    "Statistics position": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics position"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "统计显示位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "統計顯示位置"
+          }
+        }
+      }
+    },
+    "Network quality reminders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network quality reminders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络质量提醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網路品質提醒"
+          }
+        }
+      }
+    },
+    "100% preserves the original speed. This affects controller mouse mode only.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100% preserves the original speed. This affects controller mouse mode only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100% 保持原有速度，仅影响手柄鼠标模式。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100% 保持原有速度，僅影響手把滑鼠模式。"
+          }
+        }
+      }
+    },
+    "Statistics stay inside the TV safe area and do not move with the video.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics stay inside the TV safe area and do not move with the video."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "统计保持在电视安全显示区域内，不随视频画面移动。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "統計保持在電視安全顯示區域內，不隨影片畫面移動。"
+          }
+        }
+      }
+    },
+    "Leave the sticks untouched for two seconds. Calibration lasts until this controller disconnects.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave the sticks untouched for two seconds. Calibration lasts until this controller disconnects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两秒内不要触碰摇杆。校准仅保留到此手柄断开连接。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兩秒內不要觸碰搖桿。校準僅保留到此手把中斷連線。"
+          }
+        }
+      }
+    },
+    "Calibrate left stick": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calibrate left stick"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校准左摇杆"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校準左搖桿"
+          }
+        }
+      }
+    },
+    "Calibrate right stick": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calibrate right stick"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校准右摇杆"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校準右搖桿"
+          }
+        }
+      }
+    },
+    "Reset stick calibration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset stick calibration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置摇杆校准"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重設搖桿校準"
+          }
+        }
+      }
+    },
+    "Stick calibration reset.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stick calibration reset."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摇杆校准已重置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搖桿校準已重設。"
+          }
+        }
+      }
+    },
+    "Sampling. Do not touch the sticks.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sampling. Do not touch the sticks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在采样，请勿触碰摇杆。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在取樣，請勿觸碰搖桿。"
+          }
+        }
+      }
+    },
+    "Center calibrated. Previous deadzone settings are unchanged.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center calibrated. Previous deadzone settings are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中心校准完成，原有死区设置保持不变。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中心校準完成，原有死區設定保持不變。"
+          }
+        }
+      }
+    },
+    "Calibration failed: controller disconnected, stick moved or drift was too large. Previous calibration was kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calibration failed: controller disconnected, stick moved or drift was too large. Previous calibration was kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校准失败：手柄已断开、摇杆移动或漂移过大。已保留原校准。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校準失敗：手把已中斷連線、搖桿移動或漂移過大。已保留原校準。"
+          }
+        }
+      }
+    },
+    "Diagnostic QR code": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostic QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断二维码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "診斷 QR 碼"
+          }
+        }
+      }
+    },
+    "Scan to copy this diagnostic snapshot. It contains only allowlisted stream measurements, no PC addresses, names or pairing secrets. Nothing is uploaded automatically.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan to copy this diagnostic snapshot. It contains only allowlisted stream measurements, no PC addresses, names or pairing secrets. Nothing is uploaded automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描复制此诊断快照。仅包含允许的串流测量数据，不含电脑地址、名称或配对密钥，不会自动上传。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "掃描複製此診斷快照。僅包含允許的串流測量資料，不含電腦位址、名稱或配對金鑰，不會自動上傳。"
           }
         }
       }

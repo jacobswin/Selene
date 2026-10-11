@@ -33,6 +33,25 @@ struct TVBackGate {
         get { UserDefaults.standard.bool(forKey:"Selene.tv.askReconnectOnReturn") }
         set { UserDefaults.standard.set(newValue,forKey:"Selene.tv.askReconnectOnReturn") }
     }
+    static var qualityWarnings: Bool {
+        get { (UserDefaults.standard.object(forKey:"Selene.tv.qualityWarnings") as? Bool) ?? true }
+        set { UserDefaults.standard.set(newValue,forKey:"Selene.tv.qualityWarnings") }
+    }
+    static var statsPosition: Int {
+        get { min(4,max(0,UserDefaults.standard.integer(forKey:"Selene.tv.statsPosition"))) }
+        set { UserDefaults.standard.set(min(4,max(0,newValue)),forKey:"Selene.tv.statsPosition") }
+    }
+    static func mouseSpeed(_ scroll: Bool) -> Int {
+        let key = scroll ? "Selene.tv.scrollSpeed" : "Selene.tv.mouseSpeed"
+        return min(300,max(25,(UserDefaults.standard.object(forKey:key) as? NSNumber)?.intValue ?? 100))
+    }
+    static func setMouseSpeed(_ scroll: Bool, value: Int) {
+        UserDefaults.standard.set(min(300,max(25,value)),forKey:scroll ? "Selene.tv.scrollSpeed" : "Selene.tv.mouseSpeed")
+    }
+    static var invertScroll: Bool {
+        get { UserDefaults.standard.bool(forKey:"Selene.tv.invertScroll") }
+        set { UserDefaults.standard.set(newValue,forKey:"Selene.tv.invertScroll") }
+    }
     static func deadzone(_ side: String) -> Int { min(30, max(0, UserDefaults.standard.integer(forKey: "Selene.tv." + side + "Deadzone"))) }
     static func setDeadzone(_ side: String, value: Int) { UserDefaults.standard.set(min(30, max(0, value)), forKey: "Selene.tv." + side + "Deadzone") }
     static func shortcutVisible(_ id: String) -> Bool {
@@ -70,9 +89,30 @@ final class TVClientSettingsController: TVDarkTableController {
         let controller: [Row] = [
             ("Controller test", { "Buttons and sticks".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVControllerTestController()), animated: true) }),
             ("Left stick deadzone", { "\(TVClientPreferences.deadzone("left"))%" }, { [weak self] in self?.chooseDeadzone("left") }),
-            ("Right stick deadzone", { "\(TVClientPreferences.deadzone("right"))%" }, { [weak self] in self?.chooseDeadzone("right") })]
-        groups = [("Appearance", [compact]), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock, ("Ask to reconnect after Home", { TVClientPreferences.askReconnectOnReturn ? "On".localized : "Off".localized }, { TVClientPreferences.askReconnectOnReturn.toggle() })]), ("Controller", controller), ("Help and diagnostics", [
+            ("Right stick deadzone", { "\(TVClientPreferences.deadzone("right"))%" }, { [weak self] in self?.chooseDeadzone("right") }),
+            ("Stick center calibration", { "This connection only".localized }, { [weak self] in self?.present(UINavigationController(rootViewController:TVCalibrationController()),animated:true) }),
+            ("Controller mouse speed", { "\(TVClientPreferences.mouseSpeed(false))%" }, { [weak self] in self?.chooseMouseSpeed(false) }),
+            ("Controller scroll speed", { "\(TVClientPreferences.mouseSpeed(true))%" }, { [weak self] in self?.chooseMouseSpeed(true) }),
+            ("Invert controller scrolling", { TVClientPreferences.invertScroll ? "On".localized : "Off".localized }, { TVClientPreferences.invertScroll.toggle() })]
+        let presentation: [Row] = [
+            ("Statistics position", { ["Top center","Top left","Top right","Bottom left","Bottom right"][TVClientPreferences.statsPosition].localized }, { [weak self] in self?.chooseStatsPosition() }),
+            ("Network quality reminders", { TVClientPreferences.qualityWarnings ? "On".localized : "Off".localized }, { TVClientPreferences.qualityWarnings.toggle();SeleneTVSession.shared.stream?.tvRefreshQualityWarning() })]
+        groups = [("Appearance", [compact] + presentation), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock, ("Ask to reconnect after Home", { TVClientPreferences.askReconnectOnReturn ? "On".localized : "Off".localized }, { TVClientPreferences.askReconnectOnReturn.toggle() })]), ("Controller", controller), ("Help and diagnostics", [
             ("Help and diagnostics", { "Remote guide and stream status".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVHelpController()), animated:true) })])]
+    }
+    private func chooseMouseSpeed(_ scroll: Bool) {
+        let alert=UIAlertController(title:(scroll ? "Controller scroll speed" : "Controller mouse speed").localized,message:"100% preserves the original speed. This affects controller mouse mode only.".localized,preferredStyle:.actionSheet)
+        for value in stride(from:25,through:300,by:25) {
+            alert.addAction(UIAlertAction(title:"\(value)%",style:.default) { [weak self] _ in TVClientPreferences.setMouseSpeed(scroll,value:value);self?.tableView.reloadData() })
+        }
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel));present(alert,animated:true)
+    }
+    private func chooseStatsPosition() {
+        let alert=UIAlertController(title:"Statistics position".localized,message:"Statistics stay inside the TV safe area and do not move with the video.".localized,preferredStyle:.actionSheet)
+        for (position,title) in ["Top center","Top left","Top right","Bottom left","Bottom right"].enumerated() {
+            alert.addAction(UIAlertAction(title:title.localized,style:.default) { [weak self] _ in TVClientPreferences.statsPosition=position;SeleneTVSession.shared.stream?.view.setNeedsLayout();self?.tableView.reloadData() })
+        }
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel));present(alert,animated:true)
     }
     private func chooseDeadzone(_ side: String) {
         let alert = UIAlertController(title: (side == "left" ? "Left stick deadzone" : "Right stick deadzone").localized, message: "Select a radial deadzone. Zero preserves existing input behavior.".localized, preferredStyle: .actionSheet)
@@ -160,6 +200,139 @@ final class TVControllerTestController: TVDarkTableController {
         if presses.contains(where: { $0.type == .menu }) { close(); return }; super.pressesEnded(presses, with:event)
     }
 }
+
+// Pure calibration policy. A bad sample never replaces the previous center.
+struct TVCalibrationPolicy {
+    static func center(_ samples: [[Double]]) -> [Double]? {
+        guard samples.count >= 20, samples.allSatisfy({ $0.count == 2 && $0.allSatisfy({ $0.isFinite && abs($0) <= 0.2 }) }) else { return nil }
+        let mean=(0..<2).map { axis in samples.reduce(0) { $0+$1[axis] }/Double(samples.count) }
+        guard samples.allSatisfy({ abs($0[0]-mean[0]) <= 0.03 && abs($0[1]-mean[1]) <= 0.03 }) else { return nil }
+        return mean
+    }
+    static func corrected(_ value: Double, center: Double) -> Double {
+        guard value.isFinite, center.isFinite, abs(center) <= 0.2 else { return 0 }
+        let bounded=min(1,max(-1,value))
+        return min(1,max(-1,(bounded-center)/(bounded >= center ? 1-center : 1+center)))
+    }
+}
+// End calibration policy.
+
+/// Controller-instance scope prevents calibrating one pad from affecting another.
+@objcMembers final class TVControllerCalibration: NSObject {
+    static let shared=TVControllerCalibration()
+    private let centers=NSMapTable<GCController,NSArray>.weakToStrongObjects()
+    private let lock=NSLock()
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,selector:#selector(disconnected(_:)),name:.GCControllerDidDisconnect,object:nil)
+    }
+    @objc private func disconnected(_ notification:Notification) {
+        guard let controller=notification.object as? GCController else { return }
+        reset(controller)
+    }
+    func corrected(_ controller:GCController?, value:Double, axis:Int) -> Double {
+        guard let controller, (0..<4).contains(axis) else { return value }
+        lock.lock();let center=(centers.object(forKey:controller)?[axis] as? NSNumber)?.doubleValue ?? 0;lock.unlock()
+        return TVCalibrationPolicy.corrected(value,center:center)
+    }
+    @nonobjc func apply(_ values:[Double], controller:GCController, right:Bool) {
+        lock.lock();defer {lock.unlock()}
+        var previous=(centers.object(forKey:controller) as? [Double]) ?? [0,0,0,0]
+        let offset=right ? 2:0;previous[offset]=values[0];previous[offset+1]=values[1]
+        centers.setObject(previous as NSArray,forKey:controller)
+    }
+    func reset(_ controller:GCController) {lock.lock();centers.removeObject(forKey:controller);lock.unlock()}
+}
+
+final class TVCalibrationController:TVDarkTableController {
+    private var timer:Timer?
+    private weak var target:GCController?
+    private var samples:[[Double]]=[]
+    private var status="Leave the sticks untouched for two seconds. Calibration lasts until this controller disconnects.".localized
+    private var wasSuspended=true, keyboardWasSuspended=true
+    private weak var support:ControllerSupport?
+    override func viewDidLoad() {
+        super.viewDidLoad();title="Stick center calibration".localized
+        support=ControllerSupport.sharedInstance();wasSuspended=support?.forwardingSuspended ?? true
+        keyboardWasSuspended=KeyboardSupport.forwardingSuspended()
+        support?.forwardingSuspended=true;KeyboardSupport.setForwardingSuspended(true)
+        tableView.backgroundColor=UIColor(white:0.04,alpha:1);tableView.rowHeight=100
+        navigationItem.rightBarButtonItem=UIBarButtonItem(title:"Done".localized,style:.done,target:self,action:#selector(close))
+    }
+    override func viewDidDisappear(_ animated:Bool) {
+        super.viewDidDisappear(animated);timer?.invalidate();timer=nil
+        support?.forwardingSuspended=wasSuspended;KeyboardSupport.setForwardingSuspended(keyboardWasSuspended)
+    }
+    override func tableView(_ tableView:UITableView,numberOfRowsInSection section:Int)->Int {3}
+    override func tableView(_ tableView:UITableView,titleForHeaderInSection section:Int)->String? {status}
+    override func tableView(_ tableView:UITableView,cellForRowAt path:IndexPath)->UITableViewCell {
+        let cell=TVCapabilityCell(style:.default,reuseIdentifier:nil)
+        cell.textLabel?.text=["Calibrate left stick","Calibrate right stick","Reset stick calibration"][path.row].localized
+        cell.textLabel?.textColor = .white;cell.backgroundColor=UIColor(white:0.09,alpha:1);return cell
+    }
+    override func tableView(_ tableView:UITableView,didSelectRowAt path:IndexPath) {
+        guard timer == nil else {return}
+        guard let controller=GCController.controllers().first(where:{$0.extendedGamepad != nil}) else {status="No compatible controller connected".localized;tableView.reloadData();return}
+        if path.row == 2 {TVControllerCalibration.shared.reset(controller);status="Stick calibration reset.".localized;tableView.reloadData();return}
+        target=controller;samples=[];status="Sampling. Do not touch the sticks.".localized;tableView.reloadData()
+        let right=path.row == 1
+        timer=Timer.scheduledTimer(withTimeInterval:0.05,repeats:true) { [weak self,weak controller] _ in
+            guard let self else {return}
+            guard let controller, GCController.controllers().contains(where:{$0 === controller}), let pad=controller.extendedGamepad else {self.finish(nil,right:right);return}
+            let stick=right ? pad.rightThumbstick:pad.leftThumbstick
+            self.samples.append([Double(stick.xAxis.value),Double(stick.yAxis.value)])
+            if self.samples.count >= 40 {self.finish(TVCalibrationPolicy.center(self.samples),right:right)}
+        }
+    }
+    private func finish(_ center:[Double]?,right:Bool) {
+        timer?.invalidate();timer=nil
+        if let center, let target {TVControllerCalibration.shared.apply(center,controller:target,right:right);status="Center calibrated. Previous deadzone settings are unchanged.".localized}
+        else {status="Calibration failed: controller disconnected, stick moved or drift was too large. Previous calibration was kept.".localized}
+        tableView.reloadData()
+    }
+    @objc private func close() {dismiss(animated:true)}
+    override func pressesBegan(_ presses:Set<UIPress>,with event:UIPressesEvent?) {if presses.contains(where:{$0.type == .menu}) {return};super.pressesBegan(presses,with:event)}
+    override func pressesEnded(_ presses:Set<UIPress>,with event:UIPressesEvent?) {if presses.contains(where:{$0.type == .menu}) {close();return};super.pressesEnded(presses,with:event)}
+}
+
+struct TVOverlayGeometry {
+    static func frame(bounds:CGRect,size:CGSize,position:Int)->CGRect {
+        let width=min(max(0,size.width),max(0,bounds.width)), height=min(max(0,size.height),max(0,bounds.height))
+        let x:CGFloat, y:CGFloat
+        switch position {
+        case 1,3:x=bounds.minX
+        case 2,4:x=bounds.maxX-width
+        default:x=bounds.midX-width/2
+        }
+        y=(position == 3 || position == 4) ? bounds.maxY-height:bounds.minY
+        return CGRect(x:x,y:y,width:width,height:height)
+    }
+}
+// End overlay geometry.
+@objcMembers final class TVOverlayPlacement:NSObject {
+    static func frame(_ bounds:CGRect,size:CGSize,position:Int)->CGRect {TVOverlayGeometry.frame(bounds:bounds,size:size,position:position)}
+}
+
+// Diagnostics use numeric allowlists and fixed codec names, never raw host strings.
+struct TVDiagnosticDocument:Encodable {
+    let version=1
+    let active:Bool
+    let measurements:[String:Double]
+    let codec:String
+    let hdr:String
+    static let ranges:[String:ClosedRange<Double>]=["width":1...16384,"height":1...16384,"receivedFPS":0...1000,"decodeMS":0...100000,"renderDroppedFrames":0...1e12,"audioChannels":1...32,"receivedMbps":0...10000,"networkDroppedFrames":0...1e12,"rttMS":0...100000,"hardwareAcceleration":0...1]
+    init(active:Bool,measurements:[String:Double],codec:String?,hdr:Bool?) {
+        self.active=active
+        self.measurements=active ? measurements.filter { key,value in Self.ranges[key]?.contains(value) == true && value.isFinite } : [:]
+        self.codec=active && ["H.264","H.264 YUV444","HEVC","HEVC YUV444","HEVC Main 10 HDR","HEVC Main 10 SDR","HEVC Main 10 YUV444 HDR","HEVC Main 10 YUV444 SDR","AV1","AV1 YUV444","AV1 10-bit HDR","AV1 10-bit SDR","AV1 10-bit YUV444 HDR","AV1 10-bit YUV444 SDR"].contains(codec ?? "") ? codec! : "Unknown"
+        self.hdr=active ? hdr.map {$0 ? "HDR10":"SDR"} ?? "Unknown" : "NotStarted"
+    }
+    func text() throws ->String {
+        let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys]
+        return String(data:try encoder.encode(self),encoding:.utf8)!
+    }
+}
+// End diagnostic schema.
 
 struct TVConnectionRequest: Equatable {
     let width: Int, height: Int, fps: Int, codec: Int
@@ -773,25 +946,32 @@ final class TVHelpController: TVDarkTableController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done".localized, style:.done, target:self, action:#selector(close))
     }
     override func numberOfSections(in tableView: UITableView) -> Int { guides.count + 1 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section < guides.count ? guides[section].1.count : 5 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section < guides.count ? guides[section].1.count : 6 }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section < guides.count ? guides[section].0.localized : "Diagnostics and references".localized }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = TVCapabilityCell(style:.subtitle,reuseIdentifier:nil)
         cell.backgroundColor = UIColor(white:0.09,alpha:1); cell.textLabel?.textColor = .white
         cell.textLabel?.font = .systemFont(ofSize:25); cell.textLabel?.numberOfLines = 0
         if indexPath.section < guides.count { cell.textLabel?.text = guides[indexPath.section].1[indexPath.row].localized }
-        else { cell.textLabel?.text = ["Capability report", "Host extension report", "Project on GitHub", "Issue reporting", "Open-source licenses"][indexPath.row].localized; cell.accessoryType = .disclosureIndicator }
+        else { cell.textLabel?.text = ["Capability report", "Host extension report", "Diagnostic QR code", "Project on GitHub", "Issue reporting", "Open-source licenses"][indexPath.row].localized; cell.accessoryType = .disclosureIndicator }
         return cell
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard indexPath.section == guides.count else { return }
         if indexPath.row == 0 { present(UINavigationController(rootViewController: TVStreamCapabilityController()),animated:true); return }
         if indexPath.row == 1 {present(UINavigationController(rootViewController:TVHostExtensionsController()),animated:true);return}
+        if indexPath.row == 2 {
+            let values=SeleneTVSession.shared.stream?.tvStreamMeasurements() as? [String:Any] ?? [:]
+            let numbers=values.compactMapValues { ($0 as? NSNumber)?.doubleValue }
+            let document=TVDiagnosticDocument(active:SeleneTVSession.shared.stream != nil,measurements:numbers,codec:values["codec"] as? String,hdr:(values["hdr"] as? NSNumber)?.boolValue)
+            guard let code=try? document.text() else { return }
+            present(TVBackupCodeController(code:code,heading:"Diagnostic QR code".localized,explanation:"Scan to copy this diagnostic snapshot. It contains only allowlisted stream measurements, no PC addresses, names or pairing secrets. Nothing is uploaded automatically.".localized),animated:true);return
+        }
         let entries = [
             ("Project on GitHub", "https://github.com/jacobswin/Selene", "Scan with your phone to open the project."),
             ("Issue reporting", "https://github.com/jacobswin/Selene/issues", "Include device and host versions, stream settings and reproduction steps. Remove private addresses, pairing codes and account details before sharing."),
             ("Open-source licenses", "https://github.com/jacobswin/Selene/blob/main/LICENSE.txt", "Selene is GPLv3. Upstream copyright notices and dependency licenses are retained in the repository. No diagnostics are uploaded automatically.")]
-        let entry = entries[indexPath.row-2]
+        let entry = entries[indexPath.row-3]
         present(TVReferenceController(title:entry.0.localized, url:entry.1, explanation:entry.2.localized),animated:true)
     }
     @objc private func close() { dismiss(animated:true) }
@@ -845,13 +1025,14 @@ struct TVBackupDocument: Codable, Equatable {
     enum Failure: Error { case invalid }
     static let videoRanges: [String:ClosedRange<Int>] = ["width":256...3840,"height":256...2160,"framerate":1...240,"bitrate":500...800000,"preferredCodec":0...3,"audioConfig":2...8,"framePacingMode":0...3,"frameQueueSize":0...5,"renderingBackend":0...1]
     static let clientRanges: [String:ClosedRange<Int>] = ["compactCovers":0...1,"lockOnDisconnect":0...1,"askReconnectOnReturn":0...1,"leftDeadzone":0...30,"rightDeadzone":0...30,"language":0...3]
+    static let optionalClientRanges:[String:ClosedRange<Int>] = ["mouseSpeed":25...300,"scrollSpeed":25...300,"invertScroll":0...1,"statsPosition":0...4,"qualityWarnings":0...1]
     static let shortcutIDs = ["altTab","windows","esc","enter","text","capabilities"]
     func validate(supportsHEVC: Bool = true) throws {
-        guard version == 1, Set(video.keys) == Set(Self.videoRanges.keys), Set(client.keys) == Set(Self.clientRanges.keys),
+        guard version == 1, Set(video.keys) == Set(Self.videoRanges.keys), Set(Self.clientRanges.keys).isSubset(of:Set(client.keys)), Set(client.keys).isSubset(of:Set(Self.clientRanges.keys).union(Self.optionalClientRanges.keys)),
               Set(flags.keys) == Set(["enableHdr","fullColorRange","asyncFrameDequeue"]),
               Set(shortcuts.keys) == Set(Self.shortcutIDs), Set(layout.keys) == Set(["stretch","alignment","x","y"]),
               video.allSatisfy({ Self.videoRanges[$0.key]!.contains($0.value) }),
-              client.allSatisfy({ Self.clientRanges[$0.key]!.contains($0.value) }),
+              client.allSatisfy({ (Self.clientRanges[$0.key] ?? Self.optionalClientRanges[$0.key])!.contains($0.value) }),
               video["width"]! % 2 == 0, video["height"]! % 2 == 0, [2,6,8].contains(video["audioConfig"]!),
               supportsHEVC || (video["width"]! <= 1920 && video["height"]! <= 1080),
               layout.values.allSatisfy({ $0.isFinite }), [0.0,1.0].contains(layout["stretch"]!),
@@ -894,7 +1075,8 @@ final class TVBackupController: TVDarkTableController {
     private func capture() throws -> TVBackupDocument {
         guard let settings=DataManager().getSettings() else { throw TVBackupDocument.Failure.invalid }
         let video = ["width":settings.width.intValue,"height":settings.height.intValue,"framerate":settings.framerate.intValue,"bitrate":settings.bitrate.intValue,"preferredCodec":Int(settings.preferredCodec),"audioConfig":settings.audioConfig.intValue == 3 ? 2 : settings.audioConfig.intValue,"framePacingMode":settings.framePacingMode.intValue,"frameQueueSize":settings.frameQueueSize.intValue,"renderingBackend":settings.renderingBackend.intValue]
-        let client = ["compactCovers":TVClientPreferences.compactCovers ? 1:0,"lockOnDisconnect":TVClientPreferences.lockOnDisconnect ? 1:0,"askReconnectOnReturn":TVClientPreferences.askReconnectOnReturn ? 1:0,"leftDeadzone":TVClientPreferences.deadzone("left"),"rightDeadzone":TVClientPreferences.deadzone("right"),"language":Int(LocalizationHelper.languagePreference())]
+        var client = ["compactCovers":TVClientPreferences.compactCovers ? 1:0,"lockOnDisconnect":TVClientPreferences.lockOnDisconnect ? 1:0,"askReconnectOnReturn":TVClientPreferences.askReconnectOnReturn ? 1:0,"leftDeadzone":TVClientPreferences.deadzone("left"),"rightDeadzone":TVClientPreferences.deadzone("right"),"language":Int(LocalizationHelper.languagePreference())]
+        client.merge(["mouseSpeed":TVClientPreferences.mouseSpeed(false),"scrollSpeed":TVClientPreferences.mouseSpeed(true),"invertScroll":TVClientPreferences.invertScroll ? 1:0,"statsPosition":TVClientPreferences.statsPosition,"qualityWarnings":TVClientPreferences.qualityWarnings ? 1:0]) { _,new in new }
         let layout=TVStreamLayout.shared
         return TVBackupDocument(version:1,video:video,flags:["enableHdr":settings.enableHdr,"fullColorRange":settings.fullColorRange,"asyncFrameDequeue":settings.asyncFrameDequeue],client:client,shortcuts:Dictionary(uniqueKeysWithValues:TVBackupDocument.shortcutIDs.map { ($0,TVClientPreferences.shortcutVisible($0)) }),layout:["stretch":layout.stretch ? 1:0,"alignment":Double(layout.alignment),"x":layout.x,"y":layout.y])
     }
@@ -939,6 +1121,11 @@ final class TVBackupController: TVDarkTableController {
             TVClientPreferences.lockOnDisconnect=document.client["lockOnDisconnect"]==1
             TVClientPreferences.askReconnectOnReturn=document.client["askReconnectOnReturn"]==1
             TVClientPreferences.setDeadzone("left",value:document.client["leftDeadzone"]!);TVClientPreferences.setDeadzone("right",value:document.client["rightDeadzone"]!)
+            if let value=document.client["mouseSpeed"] {TVClientPreferences.setMouseSpeed(false,value:value)}
+            if let value=document.client["scrollSpeed"] {TVClientPreferences.setMouseSpeed(true,value:value)}
+            if let value=document.client["invertScroll"] {TVClientPreferences.invertScroll=value == 1}
+            if let value=document.client["statsPosition"] {TVClientPreferences.statsPosition=value}
+            if let value=document.client["qualityWarnings"] {TVClientPreferences.qualityWarnings=value == 1}
             for (id,value) in document.shortcuts {TVClientPreferences.setShortcutVisible(id,visible:value)}
             TVStreamLayout.shared.stretch=document.layout["stretch"]==1;TVStreamLayout.shared.alignment=Int(document.layout["alignment"]!)
             TVStreamLayout.shared.x=document.layout["x"]!;TVStreamLayout.shared.y=document.layout["y"]!
@@ -957,8 +1144,8 @@ final class TVBackupController: TVDarkTableController {
 }
 
 final class TVBackupCodeController: UIViewController {
-    private let code:String
-    init(code:String) {self.code=code;super.init(nibName:nil,bundle:nil)}
+    private let code:String, heading:String, explanation:String
+    init(code:String, heading:String="Export settings".localized, explanation:String="Scan and copy this backup code on your phone. Keep it for Restore backup code. It contains no pairing secrets or PC addresses.".localized) {self.code=code;self.heading=heading;self.explanation=explanation;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError()}
     override func viewDidLoad() {
         super.viewDidLoad();view.backgroundColor=UIColor(white:0.04,alpha:1)
@@ -969,7 +1156,7 @@ final class TVBackupCodeController: UIViewController {
             if let output=filter.outputImage?.transformed(by:CGAffineTransform(scaleX:5,y:5)),let pixels=CIContext().createCGImage(output,from:output.extent) {image.image=UIImage(cgImage:pixels)}
         }
         image.layer.magnificationFilter = .nearest
-        let stack=UIStackView(arrangedSubviews:[tvStreamLabel("Export settings".localized,size:36),image,tvStreamLabel("Scan and copy this backup code on your phone. Keep it for Restore backup code. It contains no pairing secrets or PC addresses.".localized,size:23),TVStreamButton("Done".localized) { [weak self] in self?.dismiss(animated:true) }]);stack.axis = .vertical;stack.spacing=25;stack.translatesAutoresizingMaskIntoConstraints=false
+        let stack=UIStackView(arrangedSubviews:[tvStreamLabel(heading,size:36),image,tvStreamLabel(explanation,size:23),TVStreamButton("Done".localized) { [weak self] in self?.dismiss(animated:true) }]);stack.axis = .vertical;stack.spacing=25;stack.translatesAutoresizingMaskIntoConstraints=false
         view.addSubview(stack);NSLayoutConstraint.activate([stack.centerXAnchor.constraint(equalTo:view.centerXAnchor),stack.centerYAnchor.constraint(equalTo:view.centerYAnchor),stack.widthAnchor.constraint(equalTo:view.widthAnchor,multiplier:0.65)])
     }
     override func pressesBegan(_ presses:Set<UIPress>,with event:UIPressesEvent?) {if presses.contains(where:{$0.type == .menu}) {return};super.pressesBegan(presses,with:event)}

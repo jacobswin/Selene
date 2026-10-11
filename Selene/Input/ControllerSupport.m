@@ -1454,11 +1454,18 @@ double rc_expo(double x, double expo) {
                 }
             }
             
-            CGFloat leftStickXRaw = gamepad.leftThumbstick.xAxis.value * self->stickMaxOffset;
-            CGFloat leftStickYRaw = gamepad.leftThumbstick.yAxis.value * self->stickMaxOffset;
-            
-            CGFloat rightStickXRaw = gamepad.rightThumbstick.xAxis.value * self->stickMaxOffset;
-            CGFloat rightStickYRaw = gamepad.rightThumbstick.yAxis.value * self->stickMaxOffset;
+            CGFloat lx = gamepad.leftThumbstick.xAxis.value, ly = gamepad.leftThumbstick.yAxis.value;
+            CGFloat rx = gamepad.rightThumbstick.xAxis.value, ry = gamepad.rightThumbstick.yAxis.value;
+#if TARGET_OS_TV
+            lx = [[TVControllerCalibration shared] corrected:controller value:lx axis:0];
+            ly = [[TVControllerCalibration shared] corrected:controller value:ly axis:1];
+            rx = [[TVControllerCalibration shared] corrected:controller value:rx axis:2];
+            ry = [[TVControllerCalibration shared] corrected:controller value:ry axis:3];
+#endif
+            CGFloat leftStickXRaw = lx * self->stickMaxOffset;
+            CGFloat leftStickYRaw = ly * self->stickMaxOffset;
+            CGFloat rightStickXRaw = rx * self->stickMaxOffset;
+            CGFloat rightStickYRaw = ry * self->stickMaxOffset;
             
             CGVector leftStickOffset = [ControllerUtil compensatedWithOffsetVector:CGVectorMake(leftStickXRaw, leftStickYRaw) minOffset:self->_leftStickMinOffset circulate:false];
             
@@ -2415,18 +2422,22 @@ double rc_expo(double x, double expo) {
     if (self.forwardingSuspended || !self.tvMouseMode) return;
     GCExtendedGamepad *pad = [self tvMouseController].extendedGamepad;
     if (!pad) { [self setTvMouseMode:NO]; return; }
-    float x = pad.rightThumbstick.xAxis.value, y = pad.rightThumbstick.yAxis.value;
+    GCController *controller = [self tvMouseController];
+    float x = [[TVControllerCalibration shared] corrected:controller value:pad.rightThumbstick.xAxis.value axis:2];
+    float y = [[TVControllerCalibration shared] corrected:controller value:pad.rightThumbstick.yAxis.value axis:3];
     SeleneTVRadialDeadzone(&x, &y, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.rightDeadzone"]);
-    _tvMouseX += x * 12; _tvMouseY -= y * 12;
+    float speed = [TVClientPreferences mouseSpeed:NO] / 100.0f;
+    _tvMouseX += x * 12 * speed; _tvMouseY -= y * 12 * speed;
     short dx = (short)_tvMouseX, dy = (short)_tvMouseY;
     if (dx || dy) { LiSendMouseMoveEvent(dx, dy); _tvMouseX -= dx; _tvMouseY -= dy; }
     BOOL a = pad.buttonA.pressed, b = pad.buttonB.pressed;
     if (a != _tvMouseA) LiSendMouseButtonEvent(a ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_LEFT);
     if (b != _tvMouseB) LiSendMouseButtonEvent(b ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, BUTTON_RIGHT);
     _tvMouseA = a; _tvMouseB = b;
-    float sx = pad.leftThumbstick.xAxis.value, sy = pad.leftThumbstick.yAxis.value;
+    float sx = [[TVControllerCalibration shared] corrected:controller value:pad.leftThumbstick.xAxis.value axis:0];
+    float sy = [[TVControllerCalibration shared] corrected:controller value:pad.leftThumbstick.yAxis.value axis:1];
     SeleneTVRadialDeadzone(&sx, &sy, [[NSUserDefaults standardUserDefaults] floatForKey:@"Selene.tv.leftDeadzone"]);
-    short scroll = (short)lrintf(sy * 20);
+    short scroll = (short)lrintf(sy * 20 * [TVClientPreferences mouseSpeed:YES] / 100.0f * (TVClientPreferences.invertScroll ? -1 : 1));
     if (scroll) LiSendHighResScrollEvent(scroll);
 }
 #endif

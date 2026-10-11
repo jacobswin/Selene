@@ -180,3 +180,17 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Physical Home/foreground flow, QR scan/paste/restore, performance descriptions/layout and reconnect notices remain unverified. Simulator streaming was not used. No host protocol changes or private screenshots/logs are included.
 
 - Signed build installed on the paired physical Apple TV after one development-connection reset; the launch command succeeded. This confirms deployment only, not physical feature acceptance.
+
+### 2026-10-11: controller calibration and diagnostic additions
+
+- Added two-second stick-center calibration with 40 samples, a minimum of 20 valid samples, maximum absolute center 0.2 and per-axis deviation 0.03. Rejected sampling preserves previous values. Calibration is keyed by weak controller identity, cleared on controller disconnect, applied before game-input compensation and mouse deadzone mapping, and excluded from export. The calibration page suspends host keyboard/gamepad forwarding and restores previous suspension on exit.
+- Added independent persistent controller pointer/scroll speed (25-300%, 25% choices, default 100%) and optional inverted scrolling. These affect the existing session mouse mode only.
+- Added top-center/four-corner statistics positioning inside TV safe bounds, separate from video fitting/offset transforms. Quality reminders remain centered and default on; their optional suppression does not change separate termination/initialization failure handling. Turning statistics off re-evaluates the latest quality status.
+- Added local diagnostic QR text using an explicit numeric-field allowlist, finite/range validation and fixed negotiated codec names. Inactive sessions discard cached measurements. It includes no arbitrary host strings, device names, addresses, pairing keys or automatic upload.
+- New persistent preferences are optional allowlisted fields in the existing backup schema; old codes remain valid and omit these fields without replacing their current values. Calibration is deliberately connection-scoped.
+- All 17 tvOS policy/transport/localization test scripts passed. New production-policy checks cover calibration stability/rejection/endpoints, five safe placements, diagnostic privacy/inactive data and HDR codec preservation. Extended preference/backup checks cover default values, bounds and backward-compatible optional fields.
+- Physical controller drift/full travel/mouse feel, disconnect isolation, overlay placement, quality warning toggles and phone QR scanning remain pending. Simulator streaming is not used as acceptance.
+
+- Final signed generic tvOS Debug build passed with Xcode 27 after localization and codec-label review. Known Main10/HDR codec labels are preserved in diagnostic output without permitting arbitrary host text.
+
+- Installed successfully on the paired physical Apple TV. Remote launch was refused because tvOS was asleep (foreground launch forbidden); device UI/stream acceptance remains pending.

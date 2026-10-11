@@ -17,6 +17,9 @@ reject {$0.layout["x"]=51};reject {$0.layout["alignment"]=1.5};reject {$0.layout
 do {_=try TVBackupDocument.decode(code,supportsHEVC:false);fatalError("accepted oversized device resolution")}catch {}
 document.video["width"]=1920;document.video["height"]=1080;try document.validate(supportsHEVC:false)
 for bitrate in [150000,160000,200000,300000,800000] {document.video["bitrate"]=bitrate;let sampleCode=try document.code();let sample=try TVBackupDocument.decode(sampleCode);assert(sample.video["bitrate"]==bitrate)}
+document.client.merge(["mouseSpeed":300,"scrollSpeed":25,"invertScroll":1,"statsPosition":4,"qualityWarnings":0]) {_,new in new}
+let extended=try TVBackupDocument.decode(document.code());assert(extended==document)
+reject {$0.client["statsPosition"]=5};reject {$0.client["mouseSpeed"]=0};reject {$0.client["qualityWarnings"]=2}
 let json=String(data:try JSONEncoder().encode(document),encoding:.utf8)!
 for secret in ["serverCert","pairing","host","address","password","account"] {assert(!json.contains(secret))}
 print("PASS: backup round trip, QR capacity, versions, corruption, bounds, allowlist, no secrets and device limits")

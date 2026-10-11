@@ -71,6 +71,7 @@
 #if TARGET_OS_TV
 - (void)showTVStreamMenu;
 - (void)tvSetInputPaused:(BOOL)paused;
+- (void)tvRefreshQualityWarning;
 - (void)tvPresentSettings;
 - (void)tvDisconnectCloseApp:(BOOL)closeApp;
 - (void)tvSetStats:(NSInteger)level;
