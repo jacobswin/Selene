@@ -4,6 +4,17 @@ import Foundation
 import AVFoundation
 import VideoToolbox
 
+// Navigation, responder and gesture fallbacks may see the same physical press.
+struct TVBackGate {
+    private var blockedUntil = -Double.infinity
+    mutating func accept(_ now: Double) -> Bool {
+        guard now >= blockedUntil else { return false }
+        blockedUntil = now + 0.3
+        return true
+    }
+    mutating func block(_ now: Double) { blockedUntil = now + 0.3 }
+}
+
 /// One owner for a stream's acknowledged bitrate and serialized host mutations.
 @objcMembers final class SeleneTVSession: NSObject {
     static let shared = SeleneTVSession()
@@ -14,6 +25,7 @@ import VideoToolbox
     private let requests = DispatchQueue(label: "Selene.stream.bitrate")
     var returningFromSettings = false
     var nextFocus = "continue"
+    @nonobjc private var backGate = TVBackGate()
     var lastMessage = ""
     var menuChanged: (() -> Void)?
     @nonobjc lazy var adaptive = TVAdaptiveController(session: self)
@@ -21,7 +33,7 @@ import VideoToolbox
     func begin(_ controller: StreamFrameViewController) {
         generation = UUID(); stream = controller
         targetKbps = Int(controller.streamConfig.bitRate)
-        pending = false; lastMessage = ""; returningFromSettings = false
+        pending = false; lastMessage = ""; returningFromSettings = false; nextFocus = "continue"
         adaptive.start()
     }
     func end() {
@@ -70,12 +82,15 @@ import VideoToolbox
         }
     }
     @objc(showMenuFrom:) func showMenu(from controller: StreamFrameViewController) {
-        guard controller.presentedViewController == nil, controller.view.window != nil else { return }
+        guard controller.presentedViewController == nil, controller.view.window != nil, acceptBack() else { return }
         if stream !== controller { begin(controller) }
+        if !returningFromSettings && nextFocus != "settings" { nextFocus = "continue" }
         controller.tvSetInputPaused(true)
         let menu = TVStreamMenuController(session: self)
         controller.present(menu, animated: true)
     }
+    func blockDuplicateBack() { backGate.block(ProcessInfo.processInfo.systemUptime) }
+    func acceptBack() -> Bool { backGate.accept(ProcessInfo.processInfo.systemUptime) }
     func settingsDidClose() {
         guard returningFromSettings, let stream else { return }
         returningFromSettings = false; nextFocus = "settings"
@@ -194,6 +209,10 @@ final class TVStreamMenuController: UIViewController {
         setNeedsFocusUpdate(); updateFocusIfNeeded()
     }
     override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); timer?.invalidate(); timer = nil }
+    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+        super.didUpdateFocus(in: context, with: coordinator)
+        if let id = buttons.first(where: { $0.value === context.nextFocusedView })?.key { session.nextFocus = id }
+    }
     private func add(_ id: String, _ key: String, action: @escaping () -> Void) {
         let button = TVStreamButton(key.localized, action: action); buttons[id] = button; left.addArrangedSubview(button)
     }
@@ -214,6 +233,8 @@ final class TVStreamMenuController: UIViewController {
         } else { dismiss(animated: true, completion: completion) }
     }
     func resume() {
+        session.blockDuplicateBack()
+        KeyboardSupport.releaseAllKeys()
         session.nextFocus = "continue"
         closeMenu { self.session.stream?.tvSetInputPaused(false) }
     }
@@ -279,7 +300,11 @@ final class TVStreamMenuController: UIViewController {
         super.pressesBegan(presses, with: event)
     }
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        if presses.contains(where: { $0.type == .menu }) { resume(); return }
+        if presses.contains(where: { $0.type == .menu }) {
+            if let child = presentedViewController { child.dismiss(animated: true); return }
+            if session.acceptBack() { resume() }
+            return
+        }
         super.pressesEnded(presses, with: event)
     }
 }

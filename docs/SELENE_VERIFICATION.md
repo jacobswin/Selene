@@ -133,3 +133,9 @@ The publishable tree was checked for local device identifiers, pairing evidence,
 - Resolution policy tests passed for all presets, custom dimensions and invalid input; language selection and three-language coverage tests passed. Signed Apple TV Debug build passed.
 - Physical low-resolution playback and settings visual acceptance remain unverified. Simulator streaming was not tested. These choices do not establish network throughput or decoding-performance guarantees.
 - English and Chinese README TODO lists now track feature implementation and bug fixes only. Removed the completed audio-cleanup entry from both lists; the audio cleanup remains implemented and its earlier verification records are retained.
+
+### 2026-10-11: stage 1 return-menu hardening
+
+- Added a shared 300 ms Back gate for duplicate navigation/responder/gesture delivery and dismissal bounce. Menu focus is remembered; nested presentation returns one layer without resuming ordinary host input.
+- Production Back-gate tests cover duplicate events, close/reopen bounce and 20 independent presses; existing shortcut suspension/release tests passed. Signed Apple TV Debug build passed.
+- This does not establish physical Menu acceptance: 20 remote presses, 10 settings round trips, uninterrupted video/audio, controller isolation and restored application focus remain pending on Apple TV.
