@@ -11,7 +11,7 @@
 #import "StreamConfiguration.h"
 #import "TemporaryHost.h"
 
-@interface HttpManager : NSObject <NSURLSessionDelegate>
+@interface HttpManager : NSObject <NSURLSessionDelegate, NSURLSessionTaskDelegate>
 
 - (id) initWithHost:(TemporaryHost*) host;
 - (id) initWithAddress:(NSString*) hostAddressPortString httpsPort:(unsigned short) httpsPort serverCert:(NSData*) serverCert;
@@ -30,6 +30,8 @@
 - (NSURLRequest*) newQuitAppRequest;
 - (NSURLRequest*) newAppAssetRequestWithAppId:(NSString*)appId;
 - (NSURLRequest*) newBirateRequest:(NSInteger)bitrateKbps forClient:(NSString* )clientName;
+- (NSInteger)executeHostCommand:(NSString*)identifier;
+- (void)requestDisplayScale:(NSNumber*)scale completion:(void (^)(NSDictionary*, NSInteger))completion;
 - (void) executeRequestSynchronously:(HttpRequest*)request;
 
 @end

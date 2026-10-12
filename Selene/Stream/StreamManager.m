@@ -84,6 +84,13 @@
         }
     }
     
+#if TARGET_OS_TV
+    _config.foundationDisplayControl = [[serverInfoResp getStringTag:@"VddCapabilityVersion"] intValue] >= 1;
+    if ((_config.controlOnly || _config.customScreenMode >= 0) && !_config.foundationDisplayControl) {
+        [_callbacks launchFailed:[LocalizationHelper localizedStringForKey:@"This host does not advertise the required Foundation extension. Disable input-only and follow host monitor settings, then reconnect."]];
+        return;
+    }
+#endif
     // Populate the config's version fields from serverinfo
     _config.appVersion = appversion;
     _config.gfeVersion = gfeVersion;

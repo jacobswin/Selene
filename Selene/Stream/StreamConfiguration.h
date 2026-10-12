@@ -35,6 +35,9 @@
 @property BOOL optimizeGameSettings;
 @property BOOL playAudioOnPC;
 @property BOOL redirectMic;
+@property BOOL controlOnly;
+@property int customScreenMode;
+@property BOOL foundationDisplayControl;
 @property BOOL swapABXYButtons;
 @property BOOL buttonVisualFeedback;
 @property BOOL asyncNativeTouchPriority;

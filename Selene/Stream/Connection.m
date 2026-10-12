@@ -559,6 +559,9 @@ void ClStageComplete(int stage)
 
 void ClStageFailed(int stage, int errorCode)
 {
+#if TARGET_OS_TV
+    [TVMicrophoneBridge quiesce];
+#endif
     [_callbacks stageFailed:LiGetStageName(stage) withError:errorCode portTestFlags:LiGetPortFlagsFromStage(stage)];
 }
 
@@ -569,6 +572,9 @@ void ClConnectionStarted(void)
 
 void ClConnectionTerminated(int errorCode)
 {
+#if TARGET_OS_TV
+    [TVMicrophoneBridge quiesce];
+#endif
     [_callbacks connectionTerminated: errorCode];
 }
 
@@ -665,6 +671,10 @@ void ClDs5HapticsIrV2(const LI_DS5_HAPTICS_IR_FRAME_V2* frame)
 
 -(void) terminate
 {
+#if TARGET_OS_TV
+    // Wait for any in-flight microphone send before the core frees its socket/crypto state.
+    [TVMicrophoneBridge quiesce];
+#endif
     // Interrupt any action blocking LiStartConnection(). This is
     // thread-safe and done outside initLock on purpose, since we
     // won't be able to acquire it if LiStartConnection is in
@@ -753,6 +763,7 @@ void ClDs5HapticsIrV2(const LI_DS5_HAPTICS_IR_FRAME_V2* frame)
     _callbacks = callbacks;
 
     LiInitializeStreamConfiguration(&_streamConfig);
+    _streamConfig.controlOnly = config.controlOnly;
     _streamConfig.colorRange = config.fullColorRange ? 1 : 0;
     fullColorRange = config.fullColorRange;
     // request10BitCodec = config.enableHdr || config.sdrPerformanceWorkaround;
@@ -763,7 +774,11 @@ void ClDs5HapticsIrV2(const LI_DS5_HAPTICS_IR_FRAME_V2* frame)
     _streamConfig.bitrate = config.bitRate;
     _streamConfig.supportedVideoFormats = config.supportedVideoFormats;
     _streamConfig.audioConfiguration = config.audioConfiguration;
+#if TARGET_OS_TV
+    _streamConfig.redirectMic = config.redirectMic && [TVMicrophoneBridge shouldRequest];
+#else
     _streamConfig.redirectMic = config.redirectMic && [MicHandler permissionGranted];
+#endif
     [Connection setVolume:config.localVolume];
     
     // Since we require iOS 12 or above, we're guaranteed to be running

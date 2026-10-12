@@ -33,6 +33,43 @@
     NSString* _baseHTTPSURL;
 }
 
+- (NSInteger)executeHostCommand:(NSString*)identifier {
+    if (!_serverCert || identifier.length == 0 || identifier.length > 128 || ![self ensureHttpsUrlPopulated:YES]) return -1;
+    NSURLComponents* parts = [NSURLComponents componentsWithString:[_baseHTTPSURL stringByAppendingString:@"/supercmd"]];
+    parts.queryItems = @[[NSURLQueryItem queryItemWithName:@"uniqueid" value:_uniqueId], [NSURLQueryItem queryItemWithName:@"cmdId" value:identifier]];
+    HttpResponse* response = [[HttpResponse alloc] init];
+    [self executeRequestSynchronously:[HttpRequest requestForResponse:response withUrlRequest:[NSMutableURLRequest requestWithURL:parts.URL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:5]]];
+    return response.statusCode;
+}
+
+// Authenticated Foundation extension. Never fall back to cleartext or log payloads.
+- (void)requestDisplayScale:(NSNumber*)scale completion:(void (^)(NSDictionary*, NSInteger))completion {
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        if (!self->_serverCert || ![self ensureHttpsUrlPopulated:YES]) {
+            dispatch_async(dispatch_get_main_queue(), ^{ completion(nil, -1); }); return;
+        }
+        NSString* path = scale ? @"display-scale" : @"display-scale-options";
+        NSURLComponents* parts = [NSURLComponents componentsWithString:[self->_baseHTTPSURL stringByAppendingFormat:@"/%@", path]];
+        parts.queryItems = @[[NSURLQueryItem queryItemWithName:@"uniqueid" value:self->_uniqueId]];
+        NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:parts.URL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:5];
+        if (scale) {
+            request.HTTPMethod = @"POST";
+            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            request.HTTPBody = [NSJSONSerialization dataWithJSONObject:@{@"scale_percent":scale} options:0 error:nil];
+        }
+        NSURLSessionConfiguration* configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+        configuration.timeoutIntervalForResource = 5;
+        NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+        [[session dataTaskWithRequest:request completionHandler:^(NSData* data, NSURLResponse* response, NSError* error) {
+            NSInteger status = error ? -1 : [(NSHTTPURLResponse*)response statusCode];
+            id json = (!error && data.length <= 65536) ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+            NSDictionary* result = [json isKindOfClass:[NSDictionary class]] ? json : nil;
+            [session finishTasksAndInvalidate];
+            dispatch_async(dispatch_get_main_queue(), ^{ completion(result, status); });
+        }] resume];
+    });
+}
+
 + (NSData*) fixXmlVersion:(NSData*) xmlData {
     NSString* dataString = [[NSString alloc] initWithData:xmlData encoding:NSUTF8StringEncoding];
     NSString* xmlString = [dataString stringByReplacingOccurrencesOfString:@"UTF-16" withString:@"UTF-8" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [dataString length])];
@@ -282,6 +319,11 @@
                            config.gamepadMask, config.gamepadMask,
                            !config.multiController ? 1 : 0,
                            LiGetLaunchUrlQueryParameters()];
+#if TARGET_OS_TV
+    if (config.foundationDisplayControl && config.customScreenMode >= 0 && config.customScreenMode <= 4) {
+        urlString = [urlString stringByAppendingFormat:@"&customScreenMode=%d", config.customScreenMode];
+    }
+#endif
     Log(LOG_I, @"Requesting: %@", urlString);
     // This blocks while the app is launching
     return [self createRequestFromString:urlString timeout:LONG_TIMEOUT_SEC];
@@ -360,6 +402,15 @@
     CFRelease(password);
     
     return identityApp;
+}
+
+- (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask*)task willPerformHTTPRedirection:(NSHTTPURLResponse*)response newRequest:(NSURLRequest*)request completionHandler:(void (^)(NSURLRequest*))completionHandler {
+    NSURL* original = task.originalRequest.URL;
+    BOOL extension = [@[@"/display-scale", @"/display-scale-options", @"/supercmd"] containsObject:original.path];
+    if (extension && (![request.URL.scheme isEqualToString:@"https"] || ![request.URL.host isEqualToString:original.host] || ![request.URL.port isEqual:original.port])) {
+        completionHandler(nil); return;
+    }
+    completionHandler(request);
 }
 
 - (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(nonnull void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * __nullable))completionHandler {

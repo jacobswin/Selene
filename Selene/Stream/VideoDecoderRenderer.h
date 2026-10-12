@@ -19,6 +19,7 @@
 
 @property (atomic, readonly) PlotMetrics decodeMetrics;
 @property (atomic, strong) NSNumber *hardwareAcceleration;
+@property (atomic, copy) NSDictionary *interpolationMeasurements;
 @property (atomic, strong) NSNumber *negotiatedHDR;
 @property (atomic, assign) CGSize negotiatedSize;
 @property (atomic, readonly) PlotMetrics frameQueueMetrics;

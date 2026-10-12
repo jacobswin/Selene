@@ -303,6 +303,7 @@ static NSMutableSet* hostList;
         if ([app.id isEqualToString:savedApp.id]) {
             savedApp.name = app.name;
             savedApp.hdrSupported = app.hdrSupported;
+            savedApp.hostCommands = app.hostCommands;
             savedApp.hidden = app.hidden;
             
             host.appList = newHostAppList;
@@ -323,6 +324,7 @@ static NSMutableSet* hostList;
             if ([app.id isEqualToString:savedApp.id]) {
                 savedApp.name = app.name;
                 savedApp.hdrSupported = app.hdrSupported;
+                savedApp.hostCommands = app.hostCommands;
                 // Don't propagate hidden, because we want the local data to prevail
                 appAlreadyInList = YES;
                 break;
@@ -941,6 +943,11 @@ static NSMutableSet* hostList;
     _streamConfig.optimizeGameSettings = streamSettings.optimizeGames;
     _streamConfig.playAudioOnPC = streamSettings.playAudioOnPC;
     _streamConfig.redirectMic = streamSettings.redirectMic;
+#if TARGET_OS_TV
+    _streamConfig.controlOnly = [TVClientPreferences inputOnly];
+    _streamConfig.redirectMic = !_streamConfig.controlOnly && [TVMicrophoneBridge shouldRequest];
+    _streamConfig.customScreenMode = (int)[TVClientPreferences monitorMode];
+#endif
     _streamConfig.localVolume = streamSettings.localVolume.floatValue;
     _streamConfig.swapABXYButtons = streamSettings.swapABXYButtons;
     _streamConfig.buttonVisualFeedback = streamSettings.buttonVisualFeedback;
@@ -1056,6 +1063,11 @@ static NSMutableSet* hostList;
 
 - (void)updateRequestedBitrate:(int)bitrateKbps {
     _streamConfig.bitRate = bitrateKbps;
+}
+
+- (HttpManager*)tvHostHTTPManager {
+    TemporaryHost* host = launchedApp.host ?: _selectedHost;
+    return host ? [[HttpManager alloc] initWithHost:host] : nil;
 }
 
 - (NSInteger)requestForBitrate:(NSInteger)bitrateKbps{

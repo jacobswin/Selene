@@ -5,6 +5,7 @@ import AVFoundation
 import VideoToolbox
 import GameController
 import CoreImage
+import AVKit
 
 // Navigation, responder and gesture fallbacks may see the same physical press.
 struct TVBackGate {
@@ -18,6 +19,14 @@ struct TVBackGate {
 }
 
 @objcMembers final class TVClientPreferences: NSObject {
+    static var inputOnly: Bool {
+        get { UserDefaults.standard.bool(forKey:"Selene.tv.inputOnly") }
+        set { UserDefaults.standard.set(newValue,forKey:"Selene.tv.inputOnly") }
+    }
+    static var monitorMode: Int {
+        get { min(4,max(-1,(UserDefaults.standard.object(forKey:"Selene.tv.monitorMode") as? NSNumber)?.intValue ?? -1)) }
+        set { UserDefaults.standard.set(min(4,max(-1,newValue)),forKey:"Selene.tv.monitorMode") }
+    }
     static var compactCovers: Bool {
         get { UserDefaults.standard.bool(forKey: "Selene.tv.compactCovers") }
         set {
@@ -97,8 +106,23 @@ final class TVClientSettingsController: TVDarkTableController {
         let presentation: [Row] = [
             ("Statistics position", { ["Top center","Top left","Top right","Bottom left","Bottom right"][TVClientPreferences.statsPosition].localized }, { [weak self] in self?.chooseStatsPosition() }),
             ("Network quality reminders", { TVClientPreferences.qualityWarnings ? "On".localized : "Off".localized }, { TVClientPreferences.qualityWarnings.toggle();SeleneTVSession.shared.stream?.tvRefreshQualityWarning() })]
-        groups = [("Appearance", [compact] + presentation), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock, ("Ask to reconnect after Home", { TVClientPreferences.askReconnectOnReturn ? "On".localized : "Off".localized }, { TVClientPreferences.askReconnectOnReturn.toggle() })]), ("Controller", controller), ("Help and diagnostics", [
+        groups = [("Host session", [
+            ("Input-only session", { TVClientPreferences.inputOnly ? "On".localized : "Off".localized }, { [weak self] in
+                if TVClientPreferences.inputOnly { TVClientPreferences.inputOnly=false;return }
+                let alert=UIAlertController(title:"Input-only session".localized,message:"Requires Foundation Sunshine. No video or audio will be received. Reconnect to apply; use Back to open controls.".localized,preferredStyle:.alert)
+                alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel))
+                alert.addAction(UIAlertAction(title:"Enable".localized,style:.default) { [weak self] _ in TVClientPreferences.inputOnly=true;self?.tableView.reloadData() })
+                self?.present(alert,animated:true)
+            }),
+            ("Host monitor arrangement", { ["Follow host","Keep monitor arrangement","Ensure active","Ensure primary","Use only stream display","Ensure secondary"][TVClientPreferences.monitorMode+1].localized }, { [weak self] in self?.chooseMonitorMode() })]), ("Appearance", [compact] + presentation), ("Menu shortcuts", shortcuts), ("Disconnect behavior", [lock, ("Ask to reconnect after Home", { TVClientPreferences.askReconnectOnReturn ? "On".localized : "Off".localized }, { TVClientPreferences.askReconnectOnReturn.toggle() })]), ("Controller", controller), ("Help and diagnostics", [
             ("Help and diagnostics", { "Remote guide and stream status".localized }, { [weak self] in self?.present(UINavigationController(rootViewController: TVHelpController()), animated:true) })])]
+    }
+    private func chooseMonitorMode() {
+        let alert=UIAlertController(title:"Host monitor arrangement".localized,message:"Requires Foundation Sunshine. Applied on reconnect; this requests display topology, not capture-monitor selection. Use only stream display may disable other monitors.".localized,preferredStyle:.actionSheet)
+        for (index,title) in ["Follow host","Keep monitor arrangement","Ensure active","Ensure primary","Use only stream display","Ensure secondary"].enumerated() {
+            alert.addAction(UIAlertAction(title:title.localized,style:.default) { [weak self] _ in TVClientPreferences.monitorMode=index-1;self?.tableView.reloadData() })
+        }
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel));present(alert,animated:true)
     }
     private func chooseMouseSpeed(_ scroll: Bool) {
         let alert=UIAlertController(title:(scroll ? "Controller scroll speed" : "Controller mouse speed").localized,message:"100% preserves the original speed. This affects controller mouse mode only.".localized,preferredStyle:.actionSheet)
@@ -411,12 +435,14 @@ struct TVConnectionRequest: Equatable {
         let saved=DataManager().getSettings()
         initialRequest = TVConnectionRequest(width:saved?.width.intValue ?? Int(controller.streamConfig.width),height:saved?.height.intValue ?? Int(controller.streamConfig.height),fps:saved?.framerate.intValue ?? Int(controller.streamConfig.frameRate),codec:requestedCodec,hdr:saved?.enableHdr ?? controller.streamConfig.enableHdr,fullRange:saved?.fullColorRange ?? controller.streamConfig.fullColorRange)
         observedBitrateStatus = nil
+        TVMicrophoneBridge.begin()
         generation = UUID(); stream = controller
         targetKbps = Int(controller.streamConfig.bitRate)
         pending = false; lastMessage = ""; returningFromSettings = false; nextFocus = "continue"
-        adaptive.start()
+        if !controller.streamConfig.controlOnly { adaptive.start() }
     }
     func end() {
+        TVMicrophoneBridge.end()
         initialRequest = nil; observedBitrateStatus = nil
         adaptive.stop()
         generation = UUID(); pending = false; stream = nil
@@ -437,7 +463,7 @@ struct TVConnectionRequest: Equatable {
     }
     func request(_ kbps: Int, saveManual: Bool, completion: @escaping (Bool, Int, Int) -> Void) {
         dispatchPrecondition(condition: .onQueue(.main))
-        guard !pending, let controller = stream, let host = controller.mainFrameViewcontroller else {
+        guard !pending, let controller = stream, !controller.streamConfig.controlOnly, let host = controller.mainFrameViewcontroller else {
             completion(false, targetKbps, -1); return
         }
         let requested = min(800_000, max(500, kbps))
@@ -547,7 +573,19 @@ final class TVStreamMenuController: UIViewController {
         panel.layer.cornerRadius = 32; panel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(panel)
         let heading = tvStreamLabel("Stream menu".localized, size: 40)
-        let columns = UIStackView(arrangedSubviews: [left, right]); columns.axis = .horizontal
+        let scrolls = [left,right].map { stack -> UIScrollView in
+            let scroll=UIScrollView();scroll.clipsToBounds=true;scroll.contentInset=UIEdgeInsets(top:8,left:8,bottom:8,right:8)
+            stack.translatesAutoresizingMaskIntoConstraints=false;scroll.addSubview(stack)
+            NSLayoutConstraint.activate([
+                stack.leadingAnchor.constraint(equalTo:scroll.contentLayoutGuide.leadingAnchor),
+                stack.trailingAnchor.constraint(equalTo:scroll.contentLayoutGuide.trailingAnchor),
+                stack.topAnchor.constraint(equalTo:scroll.contentLayoutGuide.topAnchor),
+                stack.bottomAnchor.constraint(equalTo:scroll.contentLayoutGuide.bottomAnchor),
+                stack.widthAnchor.constraint(equalTo:scroll.frameLayoutGuide.widthAnchor,constant:-16)
+            ])
+            return scroll
+        }
+        let columns = UIStackView(arrangedSubviews: scrolls); columns.axis = .horizontal
         columns.spacing = 65; columns.distribution = .fillEqually
         for stack in [left, right] { stack.axis = .vertical; stack.spacing = 18 }
         let content = UIStackView(arrangedSubviews: [heading, columns]); content.axis = .vertical
@@ -556,7 +594,7 @@ final class TVStreamMenuController: UIViewController {
         NSLayoutConstraint.activate([
             panel.centerXAnchor.constraint(equalTo: view.centerXAnchor), panel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             panel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.83),
-            panel.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.9),
+            panel.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.88),
             content.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 45),
             content.trailingAnchor.constraint(equalTo: panel.trailingAnchor, constant: -45),
             content.topAnchor.constraint(equalTo: panel.topAnchor, constant: 38),
@@ -573,6 +611,7 @@ final class TVStreamMenuController: UIViewController {
             self.present(UINavigationController(rootViewController: TVStreamCapabilityController()), animated: true)
         }
         }
+        add("hostDisplay", "Host controls") { [weak self] in self?.chooseHostControls() }
         add("keys", "Keyboard shortcuts") { [weak self] in self?.chooseKeys() }
         add("disconnect", "Disconnect stream") { [weak self] in self?.disconnect(closeApp: false) }
         add("quit", "Disconnect and close app") { [weak self] in self?.confirmQuit() }
@@ -622,13 +661,15 @@ final class TVStreamMenuController: UIViewController {
         buttons["mouse"]?.setTitle("Controller mouse".localized + ": " + ((ControllerSupport.sharedInstance()?.tvMouseMode ?? false) ? "On".localized : "Off".localized), for: .normal)
         buttons["mouse"]?.isEnabled = mouseAvailable && !disconnecting
         buttons["mouse"]?.alpha = mouseAvailable ? 1 : 0.4
+        let inputOnly = session.stream?.streamConfig.controlOnly == true
+        bitrateButtons.forEach { $0.isEnabled = !inputOnly && !session.pending && !disconnecting }
         bitrate.text = String(format: "%.1f Mbps", Double(session.targetKbps) / 1000)
         received.text = LocalizationHelper.localizedString(forKey: "Received bitrate: %.1f Mbps", session.stream?.tvReceivedMbps() ?? 0)
         status.text = (session.pending ? "Applying bitrate…".localized : session.lastMessage) + "\n" + session.adaptive.statusText + "\n" + session.reconnectNotice
         if let dropped = session.stream?.tvStreamMeasurements()["renderDroppedFrames"] as? NSNumber, dropped.doubleValue > 0 {
             status.text = (status.text ?? "") + "\n" + "Render frame drops detected; automatic bitrate uses network measurements only.".localized
         }
-        bitrateButtons.forEach { $0.isEnabled = !session.pending && !disconnecting; $0.alpha = session.pending ? 0.4 : 1 }
+        bitrateButtons.forEach { $0.isEnabled = !inputOnly && !session.pending && !disconnecting; $0.alpha = $0.isEnabled ? 1 : 0.4 }
     }
     func apply(_ kbps: Int) { session.requestManual(kbps) { [weak self] _, _, _ in self?.refresh() } }
     private func step(_ direction: Int) { apply(session.targetKbps + direction * (session.targetKbps <= 200_000 ? 10_000 : 25_000)) }
@@ -662,6 +703,64 @@ final class TVStreamMenuController: UIViewController {
                 self.closeMenu { self.session.stream?.tvDisconnectCloseApp(false) }
             }
         }
+    }
+    private var hostCommandPending=false
+    private func chooseHostControls() {
+        guard let stream=session.stream,let main=stream.mainFrameViewcontroller,let manager=main.tvHostHTTPManager() else {return}
+        session.nextFocus="hostDisplay"
+        let alert=UIAlertController(title:"Host controls".localized,message:TVMicrophoneBridge.status,preferredStyle:.actionSheet)
+        alert.addAction(UIAlertAction(title:"Apply settings and reconnect".localized,style:.default) { [weak self] _ in self?.afterAlert { [weak self] in self?.confirmReconnect() } })
+        alert.addAction(UIAlertAction(title:"Windows display scaling".localized,style:.default) { [weak self] _ in
+            self?.afterAlert { [weak self] in self?.present(UINavigationController(rootViewController:TVDisplayScaleController(manager:manager)),animated:true) }
+        })
+        if #available(tvOS 17.0, *) {
+            alert.addAction(UIAlertAction(title:"Select iPhone or iPad microphone".localized,style:.default) { [weak self] _ in self?.afterAlert { [weak self] in if let self {TVMicrophoneBridge.choose(on:self)} } })
+            alert.addAction(UIAlertAction(title:"Mute / unmute microphone".localized,style:.default) { [weak self] _ in TVMicrophoneBridge.toggle();self?.session.lastMessage=TVMicrophoneBridge.status;self?.refresh() })
+        }
+        let commands=main.sortedAppList.first(where:{$0.id == stream.streamConfig.appID})?.hostCommands ?? []
+        for command in commands {
+            guard let name=command["name"],let id=command["id"] else {continue}
+            alert.addAction(UIAlertAction(title:name,style:.default) { [weak self] _ in self?.afterAlert { [weak self] in self?.confirmHostCommand(manager,id:id,name:name) } })
+        }
+        if commands.isEmpty { alert.message=(alert.message ?? "")+"\n"+"No host-provided commands are advertised for this app.".localized }
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel));present(alert,animated:true)
+    }
+    private func confirmHostCommand(_ manager:HttpManager,id:String,name:String) {
+        let token=session.generation
+        let alert=UIAlertController(title:name,message:"Run this host-provided command? The host confirms request acceptance, not completion.".localized,preferredStyle:.alert)
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel))
+        alert.addAction(UIAlertAction(title:"Run".localized,style:.default) { [weak self] _ in
+            guard let self,self.session.generation==token,!self.session.pending,!self.hostCommandPending else {return}
+            self.hostCommandPending=true
+            self.session.lastMessage="Sending host command".localized;self.refresh()
+            DispatchQueue.global(qos:.userInitiated).async { [weak self] in
+                let status=manager.executeHostCommand(id)
+                DispatchQueue.main.async { [weak self] in
+                    guard let self,self.session.generation==token else {return}
+                    self.hostCommandPending=false
+                    self.session.lastMessage=status==200 ? "Host accepted the command request; completion is not confirmed.".localized : "Host command failed or timed out.".localized
+                    self.refresh()
+                }
+            }
+        });present(alert,animated:true)
+    }
+    private func confirmReconnect() {
+        guard !disconnecting,!session.pending else { return }
+        let alert=UIAlertController(title:"Apply settings and reconnect".localized,message:"The stream will briefly disconnect. Your PC app stays running; saved resolution, codec and HDR settings apply to the new connection.".localized,preferredStyle:.alert)
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel))
+        alert.addAction(UIAlertAction(title:"Reconnect".localized,style:.default) { [weak self] _ in
+            guard let self,let stream=self.session.stream,let main=stream.mainFrameViewcontroller,
+                  let app=main.sortedAppList.first(where:{$0.id == stream.streamConfig.appID}) else { return }
+            self.disconnecting=true
+            self.closeMenu {
+                stream.returnToMainFrame()
+                DispatchQueue.main.asyncAfter(deadline:.now()+0.7) { [weak main] in
+                    guard let main,main.navigationController?.topViewController === main,main.presentedViewController == nil,UIApplication.shared.applicationState == .active,SeleneTVSession.shared.stream == nil else { return }
+                    main.reloadStreamConfig();main.launch(app)
+                }
+            }
+        })
+        present(alert,animated:true)
     }
     private func sendShortcut(_ keys: [Int]) {
         closeMenu { [weak session] in
@@ -818,6 +917,8 @@ struct TVStreamCapabilitySnapshot {
                 ("Current session target bitrate".localized, session.stream == nil ? notStarted : String(format:"%.1f Mbps",Double(session.targetKbps)/1000)),
                 ("Pending connection changes".localized, session.stream == nil ? notStarted : session.reconnectChanges.isEmpty ? "None".localized : session.reconnectChanges.map { $0.localized }.joined(separator:", "))]),
             ("Negotiated stream".localized, [
+                ("Input-only session".localized, session.stream == nil ? notStarted : session.stream?.streamConfig.controlOnly == true ? "On".localized : "Off".localized),
+                ("Microphone forwarding".localized, TVMicrophoneBridge.status),
                 ("Resolution".localized, size),
                 ("Negotiated codec".localized, values["codec"] as? String ?? (session.stream == nil ? notStarted : unknown)),
                 ("Video decode/output path".localized, session.stream == nil ? notStarted : values["decoder"] as? String ?? unknown),
@@ -825,6 +926,9 @@ struct TVStreamCapabilitySnapshot {
                 ("HDR".localized, hdr),
                 ("Received frame rate".localized, observed("receivedFPS", format:"%.2f FPS")),
                 ("Decode time".localized, observed("decodeMS", format:"%.2f ms")),
+                ("Generated interpolation frames".localized, observed("interpolatedFrames",format:"%.0f")),
+                ("Interpolation processing time".localized, observed("interpolationMS",format:"%.2f ms")),
+                ("Interpolation degraded for latency".localized, (values["interpolationDegraded"] as? NSNumber).map { $0.boolValue ? "Yes".localized : "No".localized } ?? (session.stream == nil ? notStarted : unknown)),
                 ("Render frame drops".localized, observed("renderDroppedFrames", format:"%.0f")),
                 ("Negotiated audio channels".localized, observed("audioChannels", format:"%.0f")),
                 ("Received bitrate".localized, observed("receivedMbps", format:"%.1f Mbps")),
@@ -897,6 +1001,237 @@ enum TVHostExtensionEvidence: Equatable {
 }
 // End host extension evidence.
 
+// Only host-advertised Windows scaling presets are selectable.
+struct TVDisplayScalePolicy {
+    let current: Int?
+    let options: [Int]
+    init?(_ json: [String: Any]?, status: Int) {
+        guard status == 200, let json,
+              let code = json["status_code"] as? NSNumber, code.intValue == 200,
+              let supported = json["scale_set_supported"] as? Bool, supported,
+              let values = json["supported_scale_percents"] as? [NSNumber], !values.isEmpty,
+              values.count <= 32, values.allSatisfy({ $0.doubleValue.isFinite && $0.doubleValue == Double($0.intValue) && (50...500).contains($0.intValue) }) else { return nil }
+        options = Array(Set(values.map(\.intValue))).sorted()
+        if let value = json["current_scale_percent"] as? NSNumber, value.doubleValue == Double(value.intValue), options.contains(value.intValue) { current = value.intValue } else { current = nil }
+    }
+}
+// End display scale policy.
+
+final class TVDisplayScaleController: TVDarkTableController {
+    private let manager: HttpManager
+    private let sessionToken = SeleneTVSession.shared.generation
+    private var policy: TVDisplayScalePolicy?
+    private var busy = false
+    private var message = "Reading host display scaling".localized
+    init(manager: HttpManager) { self.manager = manager; super.init(style:.grouped) }
+    required init?(coder:NSCoder) { fatalError("init(coder:) has not been implemented") }
+    override func viewDidLoad() {
+        super.viewDidLoad(); title = "Windows display scaling".localized
+        tableView.backgroundColor = UIColor(white:0.04,alpha:1);tableView.rowHeight=UITableView.automaticDimension;tableView.estimatedRowHeight=140
+        navigationItem.rightBarButtonItem=UIBarButtonItem(title:"Done".localized,style:.done,target:self,action:#selector(close))
+        read()
+    }
+    private func valid() -> Bool { SeleneTVSession.shared.generation == sessionToken && viewIfLoaded?.window != nil }
+    private func read() {
+        busy=true;tableView.reloadData()
+        manager.requestDisplayScale(nil) { [weak self] json,status in
+            guard let self, self.valid() else { return }
+            self.busy=false;self.policy=TVDisplayScalePolicy(json as? [String:Any],status:Int(status))
+            self.message = self.policy == nil ? "Display scaling is unavailable or the host response could not be verified.".localized : "Choose a host-supported scaling preset. This changes the PC display, not the stream resolution.".localized
+            self.tableView.reloadData()
+        }
+    }
+    override func tableView(_ tableView:UITableView,numberOfRowsInSection section:Int)->Int { (policy?.options.count ?? 0)+1 }
+    override func tableView(_ tableView:UITableView,cellForRowAt path:IndexPath)->UITableViewCell {
+        let cell=TVCapabilityCell(style:.subtitle,reuseIdentifier:nil);cell.backgroundColor=UIColor(white:0.09,alpha:1)
+        cell.textLabel?.textColor = .white;cell.detailTextLabel?.textColor = .lightGray;cell.detailTextLabel?.numberOfLines=3
+        if path.row == 0 { cell.textLabel?.text = message;cell.textLabel?.numberOfLines=0;cell.detailTextLabel?.text=policy?.current.map { "\($0)%" };cell.selectionStyle = .none }
+        else if let policy { let value=policy.options[path.row-1];cell.textLabel?.text="\(value)%";cell.accessoryType=policy.current == value ? .checkmark : .none }
+        cell.isUserInteractionEnabled = !busy && path.row > 0
+        return cell
+    }
+    override func tableView(_ tableView:UITableView,didSelectRowAt path:IndexPath) {
+        guard !busy, path.row>0,let policy else { return }
+        let value=policy.options[path.row-1]
+        let alert=UIAlertController(title:"Change PC display scaling?".localized,message:"This changes Windows display scaling and may require signing out. Selene does not change it automatically.".localized,preferredStyle:.alert)
+        alert.addAction(UIAlertAction(title:"Cancel".localized,style:.cancel))
+        alert.addAction(UIAlertAction(title:"Apply".localized,style:.default) { [weak self] _ in self?.apply(value) })
+        present(alert,animated:true)
+    }
+    private func apply(_ value:Int) {
+        guard valid(),!busy,policy?.options.contains(value) == true else { return }
+        busy=true;message="Applying host display scaling".localized;tableView.reloadData()
+        manager.requestDisplayScale(NSNumber(value:value)) { [weak self] json,status in
+            guard let self,self.valid() else { return }
+            self.busy=false
+            let data=json as? [String:Any]
+            let verified=Int(status)==200 && (data?["status_code"] as? NSNumber)?.intValue==200 && (data?["success"] as? Bool)==true
+            if verified, let actual=data?["current_scale_percent"] as? NSNumber,actual.intValue==value {
+                self.message=(data?["restart_required"] as? Bool)==true ? "Host accepted scaling. Windows sign-out may be required.".localized : "Host reports the requested display scaling.".localized
+                self.policy=TVDisplayScalePolicy(data,status:200) ?? self.policy
+                // Read-back is independent evidence; a POST acceptance alone is not output verification.
+                self.busy=true
+                self.manager.requestDisplayScale(nil) { [weak self] json,status in
+                    guard let self,self.valid() else { return };self.busy=false
+                    self.policy=TVDisplayScalePolicy(json as? [String:Any],status:Int(status))
+                    if self.policy?.current != value { self.message="Scaling request accepted, but read-back does not confirm the requested value.".localized }
+                    self.tableView.reloadData()
+                }
+            } else { self.message="Could not confirm display scaling. The previous selection was preserved.".localized }
+            self.tableView.reloadData()
+        }
+    }
+    @objc private func close() { dismiss(animated:true) }
+}
+
+// A 48 kHz mono packet is exactly 20 ms; queued capture is bounded to 100 ms.
+struct TVMicrophoneFrames {
+    private(set) var pending=[Float]()
+    mutating func append(_ values:[Float]) -> [[Float]] {
+        guard values.allSatisfy({$0.isFinite}) else {pending.removeAll();return []}
+        if pending.count+values.count>4800 {pending.removeAll()}
+        pending.append(contentsOf:values.suffix(4800))
+        var result=[[Float]]()
+        while pending.count>=960 {result.append(Array(pending.prefix(960)));pending.removeFirst(960)}
+        return result
+    }
+}
+// End microphone frame policy.
+
+@objcMembers final class TVMicrophoneBridge: NSObject {
+    static var shouldRequest: Bool {
+        if #available(tvOS 17.0, *) { return TVContinuityMicrophone.shared.ready }; return false
+    }
+    static var status: String {
+        if #available(tvOS 17.0, *) { return TVContinuityMicrophone.shared.message }; return "Unavailable on this device".localized
+    }
+    static func choose(on controller:UIViewController) {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.choose(on:controller) }
+    }
+    static func begin() {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.end() }
+    }
+    static func setNegotiated(_ accepted:Bool) {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.established(accepted) }
+    }
+    static func toggle() {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.toggle() }
+    }
+    static func quiesce() {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.quiesce() }
+    }
+    static func end() {
+        if #available(tvOS 17.0, *) { TVContinuityMicrophone.shared.end() }
+    }
+}
+
+@available(tvOS 17.0, *)
+private final class TVContinuityMicrophone: NSObject, AVContinuityDevicePickerViewControllerDelegate {
+    static let shared=TVContinuityMicrophone()
+    private var device:AVContinuityDevice?
+    private var engine:AVAudioEngine?
+    private var routeObserver:NSObjectProtocol?
+    private var interruptionObserver:NSObjectProtocol?
+    private let lock=NSLock()
+    private var sending=false
+    private var captureGeneration=UUID()
+    private var encoder:OpaquePointer?
+    private var frames=TVMicrophoneFrames()
+    var negotiated=false
+    private(set) var message="Microphone off".localized
+    var ready:Bool { device?.isConnected == true && !(device?.audioSessionInputs.isEmpty ?? true) && AVCaptureDevice.authorizationStatus(for:.audio) == .authorized }
+    func choose(on controller:UIViewController) {
+        guard AVContinuityDevicePickerViewController.isSupported else {message="Unavailable on this device".localized;return}
+        // The system picker and permission prompt require an explicit user action.
+        AVCaptureDevice.requestAccess(for:.audio) { [weak self,weak controller] granted in
+            DispatchQueue.main.async {
+                guard let self,let controller else {return}
+                guard granted else {self.message="Microphone permission denied".localized;return}
+                let picker=AVContinuityDevicePickerViewController();picker.delegate=self;picker.modalPresentationStyle = .fullScreen
+                controller.present(picker,animated:true)
+            }
+        }
+    }
+    func continuityDevicePicker(_ pickerViewController:AVContinuityDevicePickerViewController,didConnect device:AVContinuityDevice) {
+        end();self.device=device
+        message="Microphone selected. Reconnect; capture starts muted.".localized
+        pickerViewController.dismiss(animated:true)
+    }
+    func continuityDevicePickerDidCancel(_ pickerViewController:AVContinuityDevicePickerViewController) {pickerViewController.dismiss(animated:true)}
+    func established(_ accepted:Bool) {
+        if !accepted {stop()}
+        negotiated=accepted
+        message=accepted ? "Microphone muted".localized : "Host did not establish microphone forwarding".localized
+    }
+    func toggle() {
+        if engine != nil { stop();message="Microphone muted".localized;return }
+        guard negotiated,ready else {message="Select an iPhone or iPad microphone and reconnect to negotiate forwarding.".localized;return}
+        do {
+            let audio=AVAudioSession.sharedInstance()
+            try audio.setCategory(.playAndRecord,mode:.default,options:[])
+            try audio.setActive(true)
+            guard let port=device?.audioSessionInputs.first else {throw NSError(domain:"SeleneMicrophone",code:1)}
+            try audio.setPreferredInput(port)
+            let engine=AVAudioEngine();let input=engine.inputNode;let format=input.outputFormat(forBus:0)
+            guard format.sampleRate>0,format.channelCount>0,
+                  let output=AVAudioFormat(commonFormat:.pcmFormatFloat32,sampleRate:48000,channels:1,interleaved:false),
+                  let converter=AVAudioConverter(from:format,to:output) else {throw NSError(domain:"SeleneMicrophone",code:2)}
+            var error:Int32=0
+            guard let encoder=opus_encoder_create(48000,1,OPUS_APPLICATION_VOIP,&error),error==OPUS_OK else {throw NSError(domain:"SeleneMicrophone",code:3)}
+            opus_encoder_ctl_wrapper(encoder,Int32(OPUS_SET_BITRATE_REQUEST),64000)
+            lock.lock();self.encoder=encoder;sending=true;frames=TVMicrophoneFrames();lock.unlock()
+            let captureToken=captureGeneration
+            input.installTap(onBus:0,bufferSize:960,format:format) { [weak self] buffer,_ in
+                guard let self else {return}
+                self.lock.lock();defer {self.lock.unlock()}
+                guard self.sending,let encoder=self.encoder else {return}
+                let capacity=AVAudioFrameCount(ceil(Double(buffer.frameLength)*48000/format.sampleRate)+32)
+                guard capacity<=8192,let converted=AVAudioPCMBuffer(pcmFormat:output,frameCapacity:capacity) else {return}
+                var used=false;var conversionError:NSError?
+                let state=converter.convert(to:converted,error:&conversionError) { _,status in
+                    if used {status.pointee = .noDataNow;return nil};used=true;status.pointee = .haveData;return buffer
+                }
+                guard state != .error,conversionError == nil,let channel=converted.floatChannelData?[0] else {return}
+                let values=UnsafeBufferPointer(start:channel,count:Int(converted.frameLength))
+                guard values.allSatisfy({$0.isFinite}) else {return}
+                for frame in self.frames.append(Array(values)) {
+                    var packet=[UInt8](repeating:0,count:1275)
+                    let count=opus_encode_float(encoder,frame,960,&packet,Int32(packet.count))
+                    if count <= 0 || sendMicrophoneOpusData(packet,count) < 0 {
+                        self.sending=false
+                        DispatchQueue.main.async { [weak self] in
+                            guard let self,self.captureGeneration==captureToken else {return}
+                            self.stop();self.message="Microphone transport failed; capture stopped".localized
+                        }
+                        break
+                    }
+                }
+            }
+            self.engine=engine
+            try engine.start()
+            routeObserver=NotificationCenter.default.addObserver(forName:AVAudioSession.routeChangeNotification,object:nil,queue:.main) { [weak self] _ in
+                guard let self else {return}
+                if !self.ready || AVAudioSession.sharedInstance().currentRoute.inputs.first?.uid != self.device?.audioSessionInputs.first?.uid {self.stop();self.message="Microphone disconnected or audio route changed".localized}
+            }
+            interruptionObserver=NotificationCenter.default.addObserver(forName:AVAudioSession.interruptionNotification,object:nil,queue:.main) { [weak self] _ in
+                self?.stop();self?.message="Microphone muted".localized
+            }
+            message="Microphone forwarding active".localized
+        } catch {stop();message="Microphone could not start on this audio route".localized}
+    }
+    func quiesce() {lock.lock();sending=false;lock.unlock()}
+    private func stop() {
+        captureGeneration=UUID()
+        lock.lock();sending=false;lock.unlock()
+        engine?.stop();engine?.inputNode.removeTap(onBus:0);engine=nil
+        if let routeObserver {NotificationCenter.default.removeObserver(routeObserver)};routeObserver=nil
+        if let interruptionObserver {NotificationCenter.default.removeObserver(interruptionObserver)};interruptionObserver=nil
+        lock.lock();if let encoder {opus_encoder_destroy(encoder)};encoder=nil;frames=TVMicrophoneFrames();lock.unlock()
+        // Keep the active stream's output route; avoid changing it behind the user's back.
+    }
+    func end() {stop();negotiated=false;message=ready ? "Microphone selected. Reconnect; capture starts muted.".localized : "Microphone off".localized}
+}
+
 final class TVHostExtensionsController: TVDarkTableController {
     private var rows: [(String,String)] = []
     override func viewDidLoad() {
@@ -913,10 +1248,10 @@ final class TVHostExtensionsController: TVDarkTableController {
         case let .failed(status):bitrate=LocalizationHelper.localizedString(forKey:"Request failed (status %d); support is unconfirmed.",status)
         }
         rows=[("Live bitrate",bitrate),
-            ("Live resolution / HDR","No verified live operation is exposed. Reconnect to apply saved settings.".localized),
-            ("Host touch keyboard / Windows DPI","Not negotiated by the current client. No unsupported control is exposed.".localized),
-            ("Monitor / render scaling / input-only","Not negotiated by the current client. No unsupported control is exposed.".localized),
-            ("Microphone forwarding","Not implemented by this tvOS client.".localized),
+            ("Live resolution / HDR","Live resolution and HDR are not exposed. Apply settings and reconnect preserves the PC app.".localized),
+            ("Host touch keyboard / Windows DPI","Display scaling is queried from the host. Keyboard commands appear only if the host advertises them.".localized),
+            ("Monitor / render scaling / input-only","Monitor topology and input-only requests require the Foundation extension. Render scaling and capture-monitor selection remain unavailable.".localized),
+            ("Microphone forwarding",TVMicrophoneBridge.status),
             ("Native interpolation",FrameInterpolator.deviceSupportsInterpolation ? "Device support detected; physical playback validation is still pending.".localized : "Unavailable on this device".localized)]
         tableView.reloadData()
     }
@@ -1025,7 +1360,7 @@ struct TVBackupDocument: Codable, Equatable {
     enum Failure: Error { case invalid }
     static let videoRanges: [String:ClosedRange<Int>] = ["width":256...3840,"height":256...2160,"framerate":1...240,"bitrate":500...800000,"preferredCodec":0...3,"audioConfig":2...8,"framePacingMode":0...3,"frameQueueSize":0...5,"renderingBackend":0...1]
     static let clientRanges: [String:ClosedRange<Int>] = ["compactCovers":0...1,"lockOnDisconnect":0...1,"askReconnectOnReturn":0...1,"leftDeadzone":0...30,"rightDeadzone":0...30,"language":0...3]
-    static let optionalClientRanges:[String:ClosedRange<Int>] = ["mouseSpeed":25...300,"scrollSpeed":25...300,"invertScroll":0...1,"statsPosition":0...4,"qualityWarnings":0...1]
+    static let optionalClientRanges:[String:ClosedRange<Int>] = ["mouseSpeed":25...300,"scrollSpeed":25...300,"invertScroll":0...1,"statsPosition":0...4,"qualityWarnings":0...1,"monitorMode":(-1)...4,"inputOnly":0...1]
     static let shortcutIDs = ["altTab","windows","esc","enter","text","capabilities"]
     func validate(supportsHEVC: Bool = true) throws {
         guard version == 1, Set(video.keys) == Set(Self.videoRanges.keys), Set(Self.clientRanges.keys).isSubset(of:Set(client.keys)), Set(client.keys).isSubset(of:Set(Self.clientRanges.keys).union(Self.optionalClientRanges.keys)),
@@ -1076,7 +1411,7 @@ final class TVBackupController: TVDarkTableController {
         guard let settings=DataManager().getSettings() else { throw TVBackupDocument.Failure.invalid }
         let video = ["width":settings.width.intValue,"height":settings.height.intValue,"framerate":settings.framerate.intValue,"bitrate":settings.bitrate.intValue,"preferredCodec":Int(settings.preferredCodec),"audioConfig":settings.audioConfig.intValue == 3 ? 2 : settings.audioConfig.intValue,"framePacingMode":settings.framePacingMode.intValue,"frameQueueSize":settings.frameQueueSize.intValue,"renderingBackend":settings.renderingBackend.intValue]
         var client = ["compactCovers":TVClientPreferences.compactCovers ? 1:0,"lockOnDisconnect":TVClientPreferences.lockOnDisconnect ? 1:0,"askReconnectOnReturn":TVClientPreferences.askReconnectOnReturn ? 1:0,"leftDeadzone":TVClientPreferences.deadzone("left"),"rightDeadzone":TVClientPreferences.deadzone("right"),"language":Int(LocalizationHelper.languagePreference())]
-        client.merge(["mouseSpeed":TVClientPreferences.mouseSpeed(false),"scrollSpeed":TVClientPreferences.mouseSpeed(true),"invertScroll":TVClientPreferences.invertScroll ? 1:0,"statsPosition":TVClientPreferences.statsPosition,"qualityWarnings":TVClientPreferences.qualityWarnings ? 1:0]) { _,new in new }
+        client.merge(["mouseSpeed":TVClientPreferences.mouseSpeed(false),"scrollSpeed":TVClientPreferences.mouseSpeed(true),"invertScroll":TVClientPreferences.invertScroll ? 1:0,"statsPosition":TVClientPreferences.statsPosition,"qualityWarnings":TVClientPreferences.qualityWarnings ? 1:0,"monitorMode":TVClientPreferences.monitorMode,"inputOnly":TVClientPreferences.inputOnly ? 1:0]) { _,new in new }
         let layout=TVStreamLayout.shared
         return TVBackupDocument(version:1,video:video,flags:["enableHdr":settings.enableHdr,"fullColorRange":settings.fullColorRange,"asyncFrameDequeue":settings.asyncFrameDequeue],client:client,shortcuts:Dictionary(uniqueKeysWithValues:TVBackupDocument.shortcutIDs.map { ($0,TVClientPreferences.shortcutVisible($0)) }),layout:["stretch":layout.stretch ? 1:0,"alignment":Double(layout.alignment),"x":layout.x,"y":layout.y])
     }
@@ -1126,6 +1461,8 @@ final class TVBackupController: TVDarkTableController {
             if let value=document.client["invertScroll"] {TVClientPreferences.invertScroll=value == 1}
             if let value=document.client["statsPosition"] {TVClientPreferences.statsPosition=value}
             if let value=document.client["qualityWarnings"] {TVClientPreferences.qualityWarnings=value == 1}
+            if let value=document.client["monitorMode"] {TVClientPreferences.monitorMode=value}
+            if let value=document.client["inputOnly"] {TVClientPreferences.inputOnly=value == 1}
             for (id,value) in document.shortcuts {TVClientPreferences.setShortcutVisible(id,visible:value)}
             TVStreamLayout.shared.stretch=document.layout["stretch"]==1;TVStreamLayout.shared.alignment=Int(document.layout["alignment"]!)
             TVStreamLayout.shared.x=document.layout["x"]!;TVStreamLayout.shared.y=document.layout["y"]!
@@ -1290,7 +1627,7 @@ final class TVAdaptiveController {
     private func restartBounds() { policy=TVAdaptivePolicy(); if active { sample() } }
     func start() {
         stop(); paused=false; unsupported=false; reason=""; failures=0
-        guard enabled, session.stream != nil else { return }
+        guard enabled, let stream=session.stream, !stream.streamConfig.controlOnly else { return }
         active=true
         timer=Timer.scheduledTimer(withTimeInterval:1,repeats:true) { [weak self] _ in self?.sample() }
     }

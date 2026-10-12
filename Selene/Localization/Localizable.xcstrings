@@ -28959,6 +28959,1150 @@
           }
         }
       }
+    },
+    "Windows display scaling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows display scaling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 显示缩放"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 顯示縮放"
+          }
+        }
+      }
+    },
+    "Reading host display scaling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading host display scaling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取主机显示缩放"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在讀取主機顯示縮放"
+          }
+        }
+      }
+    },
+    "Display scaling is unavailable or the host response could not be verified.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display scaling is unavailable or the host response could not be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示缩放不可用，或无法验证主机响应。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示縮放不可用，或無法驗證主機回應。"
+          }
+        }
+      }
+    },
+    "Choose a host-supported scaling preset. This changes the PC display, not the stream resolution.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a host-supported scaling preset. This changes the PC display, not the stream resolution."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择主机支持的缩放档位。这会更改电脑显示缩放，不会更改串流分辨率。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇主機支援的縮放檔位。這會更改電腦顯示縮放，不會更改串流解析度。"
+          }
+        }
+      }
+    },
+    "Change PC display scaling?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change PC display scaling?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改电脑显示缩放？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改電腦顯示縮放？"
+          }
+        }
+      }
+    },
+    "This changes Windows display scaling and may require signing out. Selene does not change it automatically.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This changes Windows display scaling and may require signing out. Selene does not change it automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会更改 Windows 显示缩放，可能需要注销。Selene 不会自动更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會更改 Windows 顯示縮放，可能需要登出。Selene 不會自動更改。"
+          }
+        }
+      }
+    },
+    "Applying host display scaling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying host display scaling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更改主机显示缩放"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更改主機顯示縮放"
+          }
+        }
+      }
+    },
+    "Host accepted scaling. Windows sign-out may be required.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host accepted scaling. Windows sign-out may be required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机已接受缩放设置。可能需要注销 Windows。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機已接受縮放設定。可能需要登出 Windows。"
+          }
+        }
+      }
+    },
+    "Host reports the requested display scaling.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host reports the requested display scaling."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机报告已使用请求的显示缩放。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機回報已使用要求的顯示縮放。"
+          }
+        }
+      }
+    },
+    "Scaling request accepted, but read-back does not confirm the requested value.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling request accepted, but read-back does not confirm the requested value."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缩放请求已接受，但读回结果未确认请求值。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "縮放要求已接受，但讀回結果未確認要求值。"
+          }
+        }
+      }
+    },
+    "Could not confirm display scaling. The previous selection was preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm display scaling. The previous selection was preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认显示缩放，保留此前的选择。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能確認顯示縮放，保留先前的選擇。"
+          }
+        }
+      }
+    },
+    "Host session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机会话"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機工作階段"
+          }
+        }
+      }
+    },
+    "Input-only session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input-only session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅控制会话"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅控制工作階段"
+          }
+        }
+      }
+    },
+    "Requires Foundation Sunshine. No video or audio will be received. Reconnect to apply; use Back to open controls.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires Foundation Sunshine. No video or audio will be received. Reconnect to apply; use Back to open controls."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Foundation Sunshine。不会接收画面或声音。重新连接后生效；按返回打开控制菜单。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Foundation Sunshine。不會接收畫面或聲音。重新連線後生效；按返回開啟控制選單。"
+          }
+        }
+      }
+    },
+    "Enable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用"
+          }
+        }
+      }
+    },
+    "Host monitor arrangement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host monitor arrangement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机显示器排列"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機顯示器排列"
+          }
+        }
+      }
+    },
+    "Follow host": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随主机"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟隨主機"
+          }
+        }
+      }
+    },
+    "Keep monitor arrangement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep monitor arrangement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持显示器排列"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持顯示器排列"
+          }
+        }
+      }
+    },
+    "Ensure active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ensure active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用串流显示器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用串流顯示器"
+          }
+        }
+      }
+    },
+    "Ensure primary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ensure primary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为主显示器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設為主要顯示器"
+          }
+        }
+      }
+    },
+    "Use only stream display": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use only stream display"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅使用串流显示器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅使用串流顯示器"
+          }
+        }
+      }
+    },
+    "Ensure secondary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ensure secondary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为副显示器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設為次要顯示器"
+          }
+        }
+      }
+    },
+    "Requires Foundation Sunshine. Applied on reconnect; this requests display topology, not capture-monitor selection. Use only stream display may disable other monitors.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires Foundation Sunshine. Applied on reconnect; this requests display topology, not capture-monitor selection. Use only stream display may disable other monitors."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Foundation Sunshine，重新连接后生效。这会请求显示器排列，不是选择采集显示器。“仅使用串流显示器”可能关闭其他显示器。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Foundation Sunshine，重新連線後生效。這會要求顯示器排列，不是選擇擷取顯示器。「僅使用串流顯示器」可能關閉其他顯示器。"
+          }
+        }
+      }
+    },
+    "Apply settings and reconnect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply settings and reconnect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用设置并重新连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套用設定並重新連線"
+          }
+        }
+      }
+    },
+    "The stream will briefly disconnect. Your PC app stays running; saved resolution, codec and HDR settings apply to the new connection.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The stream will briefly disconnect. Your PC app stays running; saved resolution, codec and HDR settings apply to the new connection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流会短暂断开，电脑应用继续运行。保存的分辨率、编码及 HDR 设置将在新连接中生效。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "串流會短暫中斷，電腦應用程式繼續執行。儲存的解析度、編碼及 HDR 設定將在新連線中生效。"
+          }
+        }
+      }
+    },
+    "This host does not advertise the required Foundation extension. Disable input-only and follow host monitor settings, then reconnect.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This host does not advertise the required Foundation extension. Disable input-only and follow host monitor settings, then reconnect."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机未声明所需的 Foundation 扩展。请关闭仅控制会话、选择跟随主机显示器设置，然后重新连接。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機未宣告所需的 Foundation 擴充。請關閉僅控制工作階段、選擇跟隨主機顯示器設定，然後重新連線。"
+          }
+        }
+      }
+    },
+    "Input-only session connected. No video or audio. Press Back for controls.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input-only session connected. No video or audio. Press Back for controls."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅控制会话已连接，没有画面或声音。按返回打开控制菜单。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅控制工作階段已連線，沒有畫面或聲音。按返回開啟控制選單。"
+          }
+        }
+      }
+    },
+    "Host controls": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host controls"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机控制"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機控制"
+          }
+        }
+      }
+    },
+    "Select iPhone or iPad microphone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select iPhone or iPad microphone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择 iPhone 或 iPad 麦克风"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇 iPhone 或 iPad 麥克風"
+          }
+        }
+      }
+    },
+    "Mute / unmute microphone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute / unmute microphone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静音 / 开启麦克风"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "靜音 / 開啟麥克風"
+          }
+        }
+      }
+    },
+    "No host-provided commands are advertised for this app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No host-provided commands are advertised for this app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机没有为此应用提供快捷命令。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機沒有為此應用程式提供快捷命令。"
+          }
+        }
+      }
+    },
+    "Run this host-provided command? The host confirms request acceptance, not completion.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run this host-provided command? The host confirms request acceptance, not completion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行主机提供的命令？主机只确认接受请求，不确认操作完成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "執行主機提供的命令？主機只確認接受要求，不確認操作完成。"
+          }
+        }
+      }
+    },
+    "Run": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "執行"
+          }
+        }
+      }
+    },
+    "Sending host command": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending host command"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在发送主机命令"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在傳送主機命令"
+          }
+        }
+      }
+    },
+    "Host accepted the command request; completion is not confirmed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host accepted the command request; completion is not confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机已接受命令请求，操作完成情况未确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機已接受命令要求，操作完成情況未確認。"
+          }
+        }
+      }
+    },
+    "Host command failed or timed out.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host command failed or timed out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机命令失败或超时。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機命令失敗或逾時。"
+          }
+        }
+      }
+    },
+    "Microphone off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风关闭"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風關閉"
+          }
+        }
+      }
+    },
+    "Microphone permission denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission denied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风权限被拒绝"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風權限被拒絕"
+          }
+        }
+      }
+    },
+    "Microphone selected. Reconnect; capture starts muted.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone selected. Reconnect; capture starts muted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择麦克风。请重新连接，采音默认静音。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已選擇麥克風。請重新連線，收音預設靜音。"
+          }
+        }
+      }
+    },
+    "Microphone muted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone muted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风已静音"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風已靜音"
+          }
+        }
+      }
+    },
+    "Select an iPhone or iPad microphone and reconnect to negotiate forwarding.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an iPhone or iPad microphone and reconnect to negotiate forwarding."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择 iPhone 或 iPad 麦克风并重新连接，以协商转发。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇 iPhone 或 iPad 麥克風並重新連線，以協商轉送。"
+          }
+        }
+      }
+    },
+    "Microphone disconnected or audio route changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone disconnected or audio route changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风已断开或音频输出路径已改变"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風已中斷或音訊輸出路徑已改變"
+          }
+        }
+      }
+    },
+    "Microphone forwarding active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone forwarding active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风转发已开启"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風轉送已開啟"
+          }
+        }
+      }
+    },
+    "Microphone could not start on this audio route": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone could not start on this audio route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在当前音频路径启动麦克风"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法在目前音訊路徑啟動麥克風"
+          }
+        }
+      }
+    },
+    "Live resolution and HDR are not exposed. Apply settings and reconnect preserves the PC app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live resolution and HDR are not exposed. Apply settings and reconnect preserves the PC app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开放实时分辨率和 HDR 切换。应用设置并重新连接会保留电脑应用运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未開放即時解析度和 HDR 切換。套用設定並重新連線會保留電腦應用程式執行。"
+          }
+        }
+      }
+    },
+    "Display scaling is queried from the host. Keyboard commands appear only if the host advertises them.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display scaling is queried from the host. Keyboard commands appear only if the host advertises them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示缩放从主机读取。键盘命令仅在主机提供时显示。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示縮放從主機讀取。鍵盤命令僅在主機提供時顯示。"
+          }
+        }
+      }
+    },
+    "Monitor topology and input-only requests require the Foundation extension. Render scaling and capture-monitor selection remain unavailable.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor topology and input-only requests require the Foundation extension. Render scaling and capture-monitor selection remain unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示器排列和仅控制请求需要 Foundation 扩展。渲染缩放与采集显示器选择仍不可用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示器排列和僅控制要求需要 Foundation 擴充。渲染縮放與擷取顯示器選擇仍不可用。"
+          }
+        }
+      }
+    },
+    "Microphone transport failed; capture stopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone transport failed; capture stopped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风传输失败，已停止采音"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麥克風傳輸失敗，已停止收音"
+          }
+        }
+      }
+    },
+    "Generated interpolation frames": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated interpolation frames"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实际生成的插帧数"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "實際產生的插補影格數"
+          }
+        }
+      }
+    },
+    "Interpolation processing time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpolation processing time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插帧处理耗时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插補影格處理耗時"
+          }
+        }
+      }
+    },
+    "Interpolation degraded for latency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpolation degraded for latency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插帧已因延迟降级"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插補影格已因延遲降級"
+          }
+        }
+      }
+    },
+    "Host did not establish microphone forwarding": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host did not establish microphone forwarding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机未建立麦克风转发"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主機未建立麥克風轉送"
+          }
+        }
+      }
     }
   },
   "version": "1.1"

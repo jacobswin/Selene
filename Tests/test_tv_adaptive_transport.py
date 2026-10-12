@@ -9,13 +9,14 @@ policy=s.split('// Pure adaptive policy:')[1].split('// End pure adaptive policy
 runtime='final class TVAdaptiveController {'+s.split('final class TVAdaptiveController {')[1].split('final class TVAdaptiveSettingsController')[0]
 prefix='''
 import Foundation
+final class TVMicrophoneBridge { static func begin() {}; static func end() {} }
 var clock = 0.0
 func CACurrentMediaTime()->Double { clock }
 extension String { var localized:String { self } }
-final class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false; var bitRate:Int32=200000 }
+final class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var bitRate:Int32=200000 }
 final class Host { var status=200; var requested=0; func request(forBitrate:Int)->Int { status }; func updateRequestedBitrate(_ value:Int32) { requested=Int(value) } }
 final class StreamFrameViewController { let streamConfig=Config(); var mainFrameViewcontroller:Host?=Host(); var metrics:[String:Any]=[:]; func tvStreamMeasurements()->[String:Any] { metrics } }
-final class Settings { var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false; var preferredCodec=0; var bitrate:NSNumber=200000 }
+final class Settings { var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var preferredCodec=0; var bitrate:NSNumber=200000 }
 final class DataManager { static let settings=Settings(); func getSettings()->Settings? { Self.settings }; func retrieveSettings()->Settings? { Self.settings }; func saveData() {} }
 final class KeyboardSupport { static func releaseAllKeys() {} }
 final class LocalizationHelper { static func localizedString(forKey:String,_ names:String)->String {names}; static func localizedString(forKey:String,_ status:Int,_ bitrate:Double)->String { "rejected" } }
@@ -43,6 +44,13 @@ assert(session.targetKbps==160000 && DataManager.settings.bitrate.intValue==2000
 var done=false
 session.requestManual(160000) { ok,_,_ in assert(ok);done=true }
 assert(done && !session.adaptive.active && !session.adaptive.enabled && DataManager.settings.bitrate.intValue==160000)
+session.end()
+let input=StreamFrameViewController();input.streamConfig.controlOnly=true
+session.begin(input);session.adaptive.enabled=true
+assert(!session.adaptive.active)
+var blocked=false
+session.requestManual(160000) { ok,_,_ in assert(!ok);blocked=true }
+assert(blocked && input.mainFrameViewcontroller?.requested==0)
 session.end()
 for key in ["enabled","lower","upper"] { defaults.removeObject(forKey:"Selene.abr."+key) }
 print("PASS: unsupported host stops automation, three timeout failures pause, accepted automatic target preserves manual storage, same-target manual override persists and session shutdown")

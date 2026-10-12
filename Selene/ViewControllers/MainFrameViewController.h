@@ -17,6 +17,7 @@
 #import "AppAssetManager.h"
 #import "SWRevealViewController.h"
 
+@class HttpManager;
 @class SettingsViewController;
 @class TemporaryApp;
 @class HostCollectionViewController;
@@ -49,6 +50,7 @@
 - (void)launchApp:(TemporaryApp *)app;
 - (void)quitRunningAppAndStart:(TemporaryApp *)app;
 - (void)updateRequestedBitrate:(int)bitrateKbps;
+- (HttpManager*)tvHostHTTPManager;
 - (NSInteger)requestForBitrate:(NSInteger)bitrateKbps;
 
 - (void)fillResolutionTable:(CMVideoDimensions *)resolutionTable externalDisplayMode:(NSInteger)externalDisplayMode;

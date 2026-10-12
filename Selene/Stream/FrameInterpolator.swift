@@ -51,6 +51,14 @@ final class FrameInterpolator: NSObject {
     }
 
     private let queue = DispatchQueue(label: "com.selene.FrameInterpolator", qos: .userInteractive)
+    private let diagnosticsLock=NSLock()
+    private var generatedCount=0
+    private var latestProcessingMS=0.0
+    private var degraded=false
+    @objc var diagnostics:[String:NSNumber] {
+        diagnosticsLock.lock();defer {diagnosticsLock.unlock()}
+        return ["interpolatedFrames":NSNumber(value:generatedCount),"interpolationMS":NSNumber(value:latestProcessingMS),"interpolationDegraded":NSNumber(value:degraded)]
+    }
     private var processor: AnyObject?
     private var pixelTransferSession: AnyObject?
     private var interpolationSourcePixelBufferPool: CVPixelBufferPool?
@@ -846,18 +854,22 @@ final class FrameInterpolator: NSObject {
                     "produced the first interpolated frame",
                     overlayText: "Interpolator started.".localized
                 )
+                self.diagnosticsLock.lock()
+                self.generatedCount += 1;self.latestProcessingMS=elapsed*1000
+                self.diagnosticsLock.unlock()
                 self.completedProcessingCount += 1
                 if sourceFrameInterval.isFinite, sourceFrameInterval > 0, elapsed >= sourceFrameInterval {
                     self.consecutiveSlowFrames += 1
                 } else {
                     self.consecutiveSlowFrames = 0
                 }
-                if self.completedProcessingCount >= 10, self.consecutiveSlowFrames >= 30 {
-                    // self.handleSustainedOverrun() // disable degradation for now
-                }
-
-                // NSLog("[FrameInterpolator] interpolated frame in %.2f ms",)
+                // Deliver the completed frame before resetting the processor.
                 completion([interpolatedFrame, frame])
+                #if os(tvOS)
+                if self.completedProcessingCount >= 10, self.consecutiveSlowFrames >= 30 {
+                    self.handleSustainedOverrun()
+                }
+                #endif
                 self.drainPendingFrames()
             }
         }
@@ -1055,6 +1067,7 @@ final class FrameInterpolator: NSObject {
     }
 
     private func handleSustainedOverrun() {
+        diagnosticsLock.lock();degraded=true;diagnosticsLock.unlock()
         switch resolutionTier {
         case .system:
             resolutionTier = .p720
@@ -1068,7 +1081,7 @@ final class FrameInterpolator: NSObject {
             logOnce(
                 "sustained-overrun-1080p",
                 "processing repeatedly exceeded the source-frame interval at the 1080p limit; reducing interpolation resolution to the 720p limit",
-                overlayText: "Interpolation overhead is too high. Reducing interpolation resolution to 480p.".localized
+                overlayText: "Interpolation overhead is too high. Reducing interpolation resolution to 720p.".localized
             )
         case .p720:
             resolutionTier = .p480

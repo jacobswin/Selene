@@ -70,6 +70,7 @@ static const char* TAG_APP_INSTALL_PATH = "AppInstallPath";
             NSString* appId = nil;
             NSString* hdrSupported = @"0";
             NSString* appInstallPath = nil;
+            NSArray* hostCommands = nil;
             while (appInfoNode != NULL) {
                 if (!xmlStrcmp(appInfoNode->name, (xmlChar*)TAG_APP_TITLE)) {
                     xmlChar* nodeVal = xmlNodeListGetString(docPtr, appInfoNode->xmlChildrenNode, 1);
@@ -89,6 +90,26 @@ static const char* TAG_APP_INSTALL_PATH = "AppInstallPath";
                         hdrSupported = [[NSString alloc] initWithCString:(const char*)nodeVal encoding:NSUTF8StringEncoding];
                         xmlFree(nodeVal);
                     }
+                } else if (!xmlStrcmp(appInfoNode->name, (xmlChar*)"SuperCmds")) {
+                    xmlChar* nodeVal = xmlNodeListGetString(docPtr, appInfoNode->xmlChildrenNode, 1);
+                    if (nodeVal != NULL) {
+                        NSData* data = [[NSString stringWithUTF8String:(const char*)nodeVal] dataUsingEncoding:NSUTF8StringEncoding];
+                        xmlFree(nodeVal);
+                        id entries = data.length <= 16384 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+                        NSMutableArray* validated = [NSMutableArray array];
+                        NSMutableSet* ids = [NSMutableSet set];
+                        if ([entries isKindOfClass:[NSArray class]] && [entries count] <= 32) {
+                            for (id entry in entries) {
+                                if (![entry isKindOfClass:[NSDictionary class]]) continue;
+                                id identifier = entry[@"id"], name = entry[@"name"];
+                                if (![identifier isKindOfClass:[NSString class]] || ![name isKindOfClass:[NSString class]]) continue;
+                                if ([identifier length] == 0 || [identifier length] > 128 || [name length] == 0 || [name length] > 80 || [ids containsObject:identifier]) continue;
+                                if ([name rangeOfCharacterFromSet:NSCharacterSet.controlCharacterSet].location != NSNotFound) continue;
+                                [ids addObject:identifier];[validated addObject:@{@"id":identifier,@"name":name}];
+                            }
+                        }
+                        hostCommands = validated;
+                    }
                 } else if (!xmlStrcmp(appInfoNode->name, (xmlChar*)TAG_APP_INSTALL_PATH)) {
                     xmlChar* nodeVal = xmlNodeListGetString(docPtr, appInfoNode->xmlChildrenNode, 1);
                     if (nodeVal != NULL) {
@@ -105,6 +126,7 @@ static const char* TAG_APP_INSTALL_PATH = "AppInstallPath";
                 app.id = appId;
                 app.hdrSupported = [hdrSupported intValue] != 0;
                 app.installPath = appInstallPath;
+                app.hostCommands = hostCommands;
                 [_appList addObject:app];
             }
         }

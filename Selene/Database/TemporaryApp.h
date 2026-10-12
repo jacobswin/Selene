@@ -14,6 +14,7 @@
 @property (nullable, nonatomic, retain) NSString *id;
 @property (nullable, nonatomic, retain) NSString *name;
 @property (nullable, nonatomic, retain) NSString *installPath;
+@property (nullable, nonatomic, copy) NSArray<NSDictionary<NSString*,NSString*>*> *hostCommands;
 @property (nonatomic)                   BOOL hdrSupported;
 @property (nonatomic)                   BOOL hidden;
 @property (nullable, nonatomic, retain) TemporaryHost *host;

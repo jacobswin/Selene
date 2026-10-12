@@ -317,6 +317,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
             initWithMaximumDimension:maximumDimension
             maximumPixelCount:maximumPixelCount];
         self->_frameInterpolator.isEnabled = YES;
+        self.interpolationMeasurements = nil;
         self->_frameInterpolationPaused = NO;
         [oldInterpolator reset];
 
@@ -345,6 +346,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
     dispatch_async(self->_vtq, ^{
         FrameInterpolator *oldInterpolator = self->_frameInterpolator;
         self->_frameInterpolator = nil;
+        self.interpolationMeasurements = nil;
         self->_frameInterpolationPaused = NO;
         [oldInterpolator reset];
 
@@ -488,6 +490,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
             LogOnce(LOG_W, @"Frame interpolation disabled because the device reports no supported pixel format");
             [self->_frameInterpolator reset];
             self->_frameInterpolator = nil;
+        self.interpolationMeasurements = nil;
             interpolationRequested = NO;
             [self restartDisplayLinkForInterpolationEnabled:NO];
         }
@@ -520,6 +523,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
         Log(LOG_W, @"Falling back from frame-interpolation decode output %@ to native pixel format %@", pixelFormat, nativePixelFormat);
         [self->_frameInterpolator reset];
         self->_frameInterpolator = nil;
+        self.interpolationMeasurements = nil;
         destinationPixelBufferAttributes = [@{
             (id)kCVPixelBufferPixelFormatTypeKey : nativePixelFormat
         } mutableCopy];
@@ -1446,6 +1450,7 @@ int DrSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
                                     return;
                                 }
 
+                                self.interpolationMeasurements = interpolator.diagnostics;
                                 int framesDropped = 0;
                                 for (Frame *outputFrame in (NSArray<Frame *> *)frames) {
                                     framesDropped += [self->_frameQueue enqueue:outputFrame withSlackSize:3];

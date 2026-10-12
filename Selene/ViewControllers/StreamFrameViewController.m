@@ -868,6 +868,7 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         values[@"width"] = @(renderer.negotiatedSize.width);
         values[@"height"] = @(renderer.negotiatedSize.height);
     }
+    if (renderer.interpolationMeasurements) [values addEntriesFromDictionary:renderer.interpolationMeasurements];
     if (renderer.hardwareAcceleration) values[@"hardwareAcceleration"] = renderer.hardwareAcceleration;
     if (renderer.negotiatedHDR) values[@"hdr"] = renderer.negotiatedHDR;
     if (renderer.negotiatedSize.width > 0) values[@"decoder"] = self.metalViewController ? @"VideoToolbox / Metal" : @"AVSampleBufferDisplayLayer";
@@ -1807,6 +1808,15 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
         // Leave the spinner spinning until it's obscured by
         // the first frame of video.
         self->_stageLabel.hidden = YES;
+#if TARGET_OS_TV
+        if (self->_streamConfig.controlOnly) {
+            self->_stageLabel.text = [LocalizationHelper localizedStringForKey:@"Input-only session connected. No video or audio. Press Back for controls."];
+            self->_stageLabel.numberOfLines = 0;
+            self->_stageLabel.frame = CGRectMake(80, self.view.bounds.size.height / 2 - 80, self.view.bounds.size.width - 160, 160);
+            self->_stageLabel.textAlignment = NSTextAlignmentCenter;
+            self->_stageLabel.hidden = NO;
+        }
+#endif
         self->_tipLabel.hidden = YES;
         self->_spinner.hidden = YES;
         
@@ -1956,7 +1966,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
 - (void) stageComplete:(const char*)stageName {
     _micStreamInitialized = false;
     if(strcmp(stageName, "mic stream establishment")==0){
-#if !TARGET_OS_TV
+#if TARGET_OS_TV
+        dispatch_async(dispatch_get_main_queue(), ^{ if ([SeleneTVSession shared].stream == self && self->_streamConfig.redirectMic) [TVMicrophoneBridge setNegotiated:YES]; });
+#else
         if(self->_streamConfig.redirectMic){
             dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC));
             dispatch_after(delay, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -1971,6 +1983,9 @@ static __weak StreamFrameViewController *VLSharedStreamFrameViewController = nil
     
     if(strcmp(stageName, "mic stream unsupported or unintialized")==0){
         _micStreamInitialized = false;
+#if TARGET_OS_TV
+        dispatch_async(dispatch_get_main_queue(), ^{ if ([SeleneTVSession shared].stream == self && self->_streamConfig.redirectMic) [TVMicrophoneBridge setNegotiated:NO]; });
+#endif
     }
     
     /*

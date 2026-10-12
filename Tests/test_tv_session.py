@@ -4,10 +4,10 @@ import subprocess,tempfile
 s=(Path(__file__).resolve().parents[1]/'Selene/ViewControllers/TVStreamExperience.swift').read_text()
 requestPolicy='struct TVConnectionRequest: Equatable {'+s.split('struct TVConnectionRequest: Equatable {')[1].split('// End connection request policy.')[0]
 method='func begin'+s.split('func begin')[1].split('    func end()')[0]
-program = 'import Foundation\n'+requestPolicy+r'''
-class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false; var bitRate = 200_000 }
+program = 'import Foundation\nfinal class TVMicrophoneBridge { static func begin() {}; static func end() {} }\n'+requestPolicy+r'''
+class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var bitRate = 200_000 }
 class StreamFrameViewController: NSObject { let streamConfig=Config() }
-class Settings {var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false; var preferredCodec=2 }
+class Settings {var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var preferredCodec=2 }
 let settings=Settings()
 class DataManager { func getSettings()->Settings? {settings} }
 class Adaptive { var starts=0;func start(){starts+=1} }

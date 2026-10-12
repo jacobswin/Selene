@@ -7,16 +7,17 @@ gate='struct TVBackGate {'+source.split('struct TVBackGate {')[1].split('@objcMe
 core=source.split('@objcMembers final class SeleneTVSession: NSObject {')[1].split('    @objc(showMenuFrom:)')[0]
 program=r'''
 import Foundation
+final class TVMicrophoneBridge { static func begin() {}; static func end() {} }
 extension String {var localized:String {self}}
 final class TVAdaptiveController { init(session:SeleneTVSession) {}; func start() {}; func stop() {}; func manualOverride() {} }
-final class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false; var bitRate: Int32 = 150000 }
+final class Config { var width=1920,height=1080,frameRate=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var bitRate: Int32 = 150000 }
 final class Host {
  var status = 200; var calls = 0; var requested = 0
  func request(forBitrate value: Int) -> Int { calls += 1; Thread.sleep(forTimeInterval: 0.04); return status }
  func updateRequestedBitrate(_ value: Int32) { requested = Int(value) }
 }
 final class StreamFrameViewController { let streamConfig=Config(); var mainFrameViewcontroller: Host?=Host() }
-final class Settings { var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false; var preferredCodec=0; var bitrate: NSNumber? }
+final class Settings { var width:NSNumber=1920,height:NSNumber=1080,framerate:NSNumber=60;var enableHdr=false,fullColorRange=false,controlOnly=false; var preferredCodec=0; var bitrate: NSNumber? }
 final class DataManager { static let settings=Settings(); func getSettings()->Settings? { Self.settings }; func retrieveSettings()->Settings? { Self.settings }; func saveData() {} }
 final class KeyboardSupport { static func releaseAllKeys() {} }
 final class LocalizationHelper { static func localizedString(forKey:String,_ names:String)->String {names}; static func localizedString(forKey: String, _ status: Int, _ bitrate: Double)->String { "rejected" } }
